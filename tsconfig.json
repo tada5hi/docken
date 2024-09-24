@@ -1,0 +1,18 @@
+{
+    "extends": "@tada5hi/tsconfig",
+    "compilerOptions": {
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
+        "module": "ESNext",
+        "outDir": "dist",
+        "target": "ESNext"
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules/**/*"
+    ]
+}
