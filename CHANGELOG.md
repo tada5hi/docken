@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/tada5hi/docken/compare/v1.0.0...v1.1.0) (2025-02-18)
+
+
+### Features
+
+* enable inheritance of parent meta attributes ([f5c2ac9](https://github.com/tada5hi/docken/commit/f5c2ac9b8180d2c8c8d1729b8fbf86fc15180c19))
+
 # 1.0.0 (2025-02-18)
 
 
