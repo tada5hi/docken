@@ -5,8 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import {Meta} from "../../src";
-import { scanDirectory } from "../../src";
+import {Meta} from "../../../src";
+import { scanDirectory } from "../../../src";
 import * as path from "path";
 
 describe('src/api/sort.ts', () => {
