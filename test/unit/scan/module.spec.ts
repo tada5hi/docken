@@ -5,11 +5,11 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import {Meta} from "../../../src";
-import { scanDirectory } from "../../../src";
-import * as path from "path";
+import path from 'node:path';
+import type { Meta } from '../../../src';
+import { scanDirectory } from '../../../src';
 
-describe('src/api/sort.ts', () => {
+describe('scan', () => {
     it('should scan directory correctly', async () => {
         const directory = await scanDirectory('test/data');
         expect(directory.images).toEqual([
@@ -18,7 +18,7 @@ describe('src/api/sort.ts', () => {
                 virtualPath: 'group/image',
                 attributes: {
                     name: 'Cool image',
-                }
+                },
             },
             {
                 path: `group${path.sep}undefined${path.sep}sub-sub-group${path.sep}image`,
@@ -26,11 +26,11 @@ describe('src/api/sort.ts', () => {
                 attributes: {
                     id: 'meta-id',
                     name: 'MetaId',
-                }
+                },
             },
             {
                 path: 'image',
-                virtualPath: 'image'
+                virtualPath: 'image',
             },
         ] as Meta[]);
 
@@ -41,22 +41,22 @@ describe('src/api/sort.ts', () => {
                 attributes: {
                     license: 'MIT',
                     name: 'Group',
-                }
+                },
             },
             {
                 path: `group${path.sep}sub-group`,
                 virtualPath: 'group/sub-group',
                 attributes: {
                     name: 'SubGroup',
-                }
+                },
             },
             {
                 path: `group${path.sep}undefined${path.sep}sub-sub-group`,
                 virtualPath: 'group/sub-sub-group',
                 attributes: {
                     name: 'SubSubGroup',
-                }
-            }
-        ] as Meta[])
+                },
+            },
+        ] as Meta[]);
     });
 });

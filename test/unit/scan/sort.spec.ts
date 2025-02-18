@@ -1,4 +1,4 @@
-import {sortMetaElementsByPath} from "../../../src/scan/meta/sort";
+import { sortMetaElementsByPath } from '../../../src/scan/meta/sort';
 
 describe('scan > sort', () => {
     it('should sort meta elements (empty array)', () => {
@@ -8,36 +8,36 @@ describe('scan > sort', () => {
     it('should sort meta elements (empty path)', () => {
         const sorted = sortMetaElementsByPath([
             { path: '' },
-            { path: '' }
+            { path: '' },
         ]);
 
         expect(sorted).toEqual([
             { path: '' },
-            { path: '' }
-        ])
-    })
+            { path: '' },
+        ]);
+    });
 
     it('should sort meta elements (a < b)', () => {
         const sorted = sortMetaElementsByPath([
             { path: '' },
-            { path: '/path' }
+            { path: '/path' },
         ]);
 
         expect(sorted).toEqual([
             { path: '' },
-            { path: '/path' }
-        ])
-    })
+            { path: '/path' },
+        ]);
+    });
 
     it('should sort meta elements (a > b)', () => {
         const sorted = sortMetaElementsByPath([
             { path: '/path' },
-            { path: '' }
+            { path: '' },
         ]);
 
         expect(sorted).toEqual([
             { path: '' },
-            { path: '/path' }
-        ])
-    })
-})
+            { path: '/path' },
+        ]);
+    });
+});

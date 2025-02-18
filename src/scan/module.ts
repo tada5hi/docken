@@ -64,7 +64,10 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
         }
     } else if (!ctx.root) {
         if (ctx.parent) {
-            ctx.parent.path = path.join(ctx.parent.path, directoryName);
+            ctx.parent = {
+                ...ctx.parent,
+                path: path.join(ctx.parent.path, directoryName),
+            };
         } else {
             ctx.parent = {
                 path: directoryName,
