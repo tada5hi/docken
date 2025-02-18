@@ -17,6 +17,7 @@ describe('scan', () => {
                 path: `group${path.sep}image`,
                 virtualPath: 'group/image',
                 attributes: {
+                    license: 'MIT',
                     name: 'Cool image',
                 },
             },
@@ -24,6 +25,7 @@ describe('scan', () => {
                 path: `group${path.sep}undefined${path.sep}sub-sub-group${path.sep}image`,
                 virtualPath: 'group/sub-sub-group/image',
                 attributes: {
+                    license: 'MIT',
                     id: 'meta-id',
                     name: 'MetaId',
                 },
@@ -47,6 +49,7 @@ describe('scan', () => {
                 path: `group${path.sep}sub-group`,
                 virtualPath: 'group/sub-group',
                 attributes: {
+                    license: 'MIT',
                     name: 'SubGroup',
                 },
             },
@@ -54,6 +57,7 @@ describe('scan', () => {
                 path: `group${path.sep}undefined${path.sep}sub-sub-group`,
                 virtualPath: 'group/sub-sub-group',
                 attributes: {
+                    license: 'MIT',
                     name: 'SubSubGroup',
                 },
             },

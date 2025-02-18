@@ -47,10 +47,17 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
         }
 
         if (directoryMeta.fileExists) {
-            meta.attributes = await readMetaFile(
-                ctx.cwd,
-                directoryMeta.type,
-            );
+            meta.attributes = {
+                ...(ctx.parent && ctx.parent.attributes ? ctx.parent.attributes : {}),
+                ...await readMetaFile(
+                    ctx.cwd,
+                    directoryMeta.type,
+                ),
+            };
+        } else if (ctx.parent && ctx.parent.attributes) {
+            meta.attributes = {
+                ...ctx.parent.attributes,
+            };
         }
 
         if (directoryMeta.type === MetaType.GROUP) {
