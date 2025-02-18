@@ -5,7 +5,7 @@
  *  view the LICENSE file that was distributed with this source code.
  */
 
-import {hasOwnProperty, isObject} from "smob";
+import { hasOwnProperty, isObject } from 'smob';
 
 export function extractErrorFromModemResponse(res: unknown) : Error | null {
     if (!res || !Array.isArray(res) || res.length === 0) {
