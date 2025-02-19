@@ -1,6 +1,6 @@
 {
     "name": "docken",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A library providing utilities for the interaction with docker.",
     "author": {
         "name": "Peter Placzek",

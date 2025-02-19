@@ -1,3 +1,15 @@
+## [1.1.1](https://github.com/tada5hi/docken/compare/v1.1.0...v1.1.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* rename Meta ts type to ScanResultItem ([08bfb25](https://github.com/tada5hi/docken/commit/08bfb25625be832b6574b1359e56294ec106b310))
+
+
+### Performance Improvements
+
+* optimize scanning directory ([e83c070](https://github.com/tada5hi/docken/commit/e83c0709f7d9dfca79cc5afd2b82c6932229f929))
+
 # [1.1.0](https://github.com/tada5hi/docken/compare/v1.0.0...v1.1.0) (2025-02-18)
 
 
