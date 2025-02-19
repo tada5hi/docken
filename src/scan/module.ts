@@ -106,14 +106,6 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
         }
     }
 
-    if (output.images.length > 0) {
-        output.images = distinctArray(output.images);
-    }
-
-    if (output.groups.length > 0) {
-        output.groups = distinctArray(output.groups);
-    }
-
     return output;
 }
 
@@ -126,7 +118,12 @@ export async function scanDirectory(
     });
 
     return {
-        images: sortMetaElementsByPath(output.images),
-        groups: sortMetaElementsByPath(output.groups),
+        images: output.images.length > 0 ?
+            sortMetaElementsByPath(distinctArray(output.images)) :
+            output.images,
+
+        groups: output.groups.length > 0 ?
+            sortMetaElementsByPath(distinctArray(output.groups)) :
+            output.groups,
     };
 }
