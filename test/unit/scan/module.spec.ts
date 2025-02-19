@@ -6,7 +6,7 @@
  */
 
 import path from 'node:path';
-import type { Meta } from '../../../src';
+import type { ScanResultItem } from '../../../src';
 import { scanDirectory } from '../../../src';
 
 describe('scan', () => {
@@ -34,7 +34,7 @@ describe('scan', () => {
                 path: 'image',
                 virtualPath: 'image',
             },
-        ] as Meta[]);
+        ] as ScanResultItem[]);
 
         expect(directory.groups).toEqual([
             {
@@ -61,6 +61,6 @@ describe('scan', () => {
                     name: 'SubSubGroup',
                 },
             },
-        ] as Meta[]);
+        ] as ScanResultItem[]);
     });
 });

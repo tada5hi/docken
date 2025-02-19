@@ -5,12 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-export enum MetaType {
-    IMAGE = 'image',
-    GROUP = 'group',
-}
-
-export enum MetaFileName {
-    IMAGE = 'image.json',
-    GROUP = 'image-group.json',
-}
+export type ScanResultItem = {
+    path: string,
+    virtualPath?: string,
+    attributes?: Record<string, any>
+};

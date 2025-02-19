@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2025.
- *  Author Peter Placzek (tada5hi)
- *  For the full copyright and license information,
- *  view the LICENSE file that was distributed with this source code.
+ * Copyright (c) 2025-2025.
+ * Author Peter Placzek (tada5hi)
+ * For the full copyright and license information,
+ * view the LICENSE file that was distributed with this source code.
  */
 
 import path from 'node:path';
-import type { Meta } from './types';
+import type { ScanResultItem } from './types';
 
 function sorter(a: string[], b: string[]) {
     const l = Math.max(a.length, b.length);
@@ -23,7 +23,7 @@ function sorter(a: string[], b: string[]) {
     return 0;
 }
 
-export function sortMetaElementsByPath(meta: Meta[]) {
+export function sortScanResultItemsByPath(meta: ScanResultItem[]) {
     return meta.sort((a, b) => {
         const aParts = a.path.split(path.sep);
         const bParts = b.path.split(path.sep);

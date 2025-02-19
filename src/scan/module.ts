@@ -1,25 +1,25 @@
 /*
  * Copyright (c) 2021-2025.
- *  Author Peter Placzek (tada5hi)
- *  For the full copyright and license information,
- *  view the LICENSE file that was distributed with this source code.
+ * Author Peter Placzek (tada5hi)
+ * For the full copyright and license information,
+ * view the LICENSE file that was distributed with this source code.
  */
 
 import path from 'node:path';
 import fs from 'node:fs';
 import { distinctArray } from 'smob';
-import { sortMetaElementsByPath } from './meta/sort';
+import { sortScanResultItemsByPath } from './result';
 import type {
     ScanResult,
 } from './types';
-import type { Meta } from './meta';
+import type { ScanResultItem } from './result';
 import {
     MetaType, detectDirectoryMeta, readMetaFile,
 } from './meta';
 
 type DirectoryScanContext = {
     cwd: string,
-    parent?: Meta,
+    parent?: ScanResultItem,
     root?: boolean
 };
 async function scanDirectoryInternal(ctx: DirectoryScanContext) {
@@ -31,7 +31,7 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
     const directoryName = path.basename(ctx.cwd);
     const directoryMeta = await detectDirectoryMeta(ctx.cwd);
     if (directoryMeta) {
-        let meta : Meta;
+        let meta : ScanResultItem;
         if (ctx.parent) {
             meta = {
                 virtualPath: ctx.parent.virtualPath ?
@@ -119,11 +119,11 @@ export async function scanDirectory(
 
     return {
         images: output.images.length > 0 ?
-            sortMetaElementsByPath(distinctArray(output.images)) :
+            sortScanResultItemsByPath(distinctArray(output.images)) :
             output.images,
 
         groups: output.groups.length > 0 ?
-            sortMetaElementsByPath(distinctArray(output.groups)) :
+            sortScanResultItemsByPath(distinctArray(output.groups)) :
             output.groups,
     };
 }
