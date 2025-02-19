@@ -1,4 +1,4 @@
-# Docken 💾
+# Docken 🐳
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm version][codecov-src]][codecov-href]
@@ -6,7 +6,8 @@
 [![Known Vulnerabilities][snyk-src]][snyk-href]
 [![Conventional Commits][conventional-src]][conventional-href]
 
-This is a package containing utilities in the context of docker.
+This is a library built on top of dockerode for interacting with the docker daemon.
+Besides, it enables scanning organized dockerfiles via FS.
 
 > 🚧 **Work in Progress**
 >
@@ -16,6 +17,8 @@ This is a package containing utilities in the context of docker.
 **Table of Contents**
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Daemon](#daemon)
+  - [FS Scan](#fs-scan)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -27,7 +30,31 @@ npm install docken --save
 
 ## Usage
 
+### Daemon
 ...
+
+### FS Scan
+**`Image`**
+
+An image is in most cases represented by a Dockerfile in a directory. In some cases
+the image is also described with some meta information by an image descriptor file (`image.json`).
+But the descriptor file can also be a replacement for the Dockerfile.
+
+**`Group`**
+
+A group has the same base properties as an image. The only other difference
+is, that the descriptor file must be named `group.json`.
+
+**`Meta`**
+
+The meta object has the following **3** properties:
+- `path`
+  The path is the relative path on the host machine, with different path separators (windows: `\\`, linux: `/`)
+  depending on the operating system.
+- `virtualPath`
+  The virtualPath is a path only containing group ids and the own image id, seperated with `/`.
+- `attributes`
+  The attributes property holds an object of optional data provided via `image.json` or `group.json` file.
 
 ## Contributing
 
