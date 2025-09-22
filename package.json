@@ -68,7 +68,7 @@
         "typescript": "^5.8.2"
     },
     "dependencies": {
-        "dockerode": "^4.0.5",
+        "dockerode": "^4.0.8",
         "locter": "^2.1.6",
         "smob": "^1.5.0"
     }
