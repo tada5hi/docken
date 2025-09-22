@@ -69,7 +69,7 @@
     },
     "dependencies": {
         "dockerode": "^4.0.5",
-        "locter": "^2.1.6",
+        "locter": "^2.2.0",
         "smob": "^1.5.0"
     }
 }
