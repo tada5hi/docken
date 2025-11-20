@@ -7,8 +7,12 @@
 
 import type { Progress } from '../../helpers';
 import type { ObjectLiteral } from '../../types';
-import type { ModemStatusChunk } from './chunk-status';
-import type { ModemStreamChunk } from './chunk-stream';
+import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
+
+export {
+    ModemStatusChunk,
+    ModemStreamChunk,
+};
 
 export type ModemStreamWaitOptions = {
     onFinished?: () => void,

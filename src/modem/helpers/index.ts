@@ -5,7 +5,5 @@
  *  view the LICENSE file that was distributed with this source code.
  */
 
-export * from './chunk-status';
 export * from './wait-for-stream';
-export * from './response-error';
 export * from './types';

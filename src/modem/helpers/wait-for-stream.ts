@@ -13,13 +13,13 @@ import {
     isModemExtractingStatusChunk,
     isModemPushingStatusChunk,
     isModemStatusChunk,
-} from './chunk-status';
+} from '../utils/chunk-status';
 import {
     isModemProgressStream,
     isModemProgressStreamEndStep,
     parseModemProgressStreamAsStepStart,
-} from './chunk-stream';
-import { extractErrorFromModemResponse } from './response-error';
+} from '../utils/chunk-stream';
+import { extractErrorFromModemResponse } from '../utils/response-error';
 import type { ModemStreamWaitOptions } from './types';
 
 export async function waitForModemStream(

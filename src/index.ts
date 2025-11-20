@@ -6,7 +6,6 @@
  */
 
 export * from './client';
+export * from './helpers';
 export * from './modem';
 export * from './scan';
-
-export { Progress } from './helpers/progress';
