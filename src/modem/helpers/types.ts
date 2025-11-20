@@ -6,7 +6,7 @@
  */
 
 import type { Progress } from '../../helpers';
-import type { ObjectLiteral } from '../../types';
+import type { ObjectLiteral, Quantity } from '../../types';
 import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
 
 export {
@@ -22,6 +22,6 @@ export type ModemStreamWaitOptions = {
 
     onPushing?: (input: Progress) => void | Promise<void>,
     onDownloading?: (input: Progress) => void | Promise<void>,
-    onExtracting?: (current: number, units: string) => void | Promise<void>,
+    onExtracting?: (quantity: Quantity) => void | Promise<void>,
     onBuilding?: (input: Progress) => void | Promise<void>,
 };

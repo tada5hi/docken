@@ -6,3 +6,8 @@
  */
 
 export type ObjectLiteral = Record<string, any>;
+
+export type Quantity = {
+    value: number,
+    unit: string
+};

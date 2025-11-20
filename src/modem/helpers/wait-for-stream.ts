@@ -9,17 +9,16 @@ import type { Progress } from '../../helpers';
 import { buildProgress } from '../../helpers';
 import type { Modem } from '../types';
 import {
+    extractErrorFromModemResponse,
     isModemDownloadingStatusChunk,
     isModemExtractingStatusChunk,
+    isModemProgressStream,
+
+    isModemProgressStreamEndStep,
     isModemPushingStatusChunk,
     isModemStatusChunk,
-} from '../utils/chunk-status';
-import {
-    isModemProgressStream,
-    isModemProgressStreamEndStep,
     parseModemProgressStreamAsStepStart,
-} from '../utils/chunk-stream';
-import { extractErrorFromModemResponse } from '../utils/response-error';
+} from '../utils';
 import type { ModemStreamWaitOptions } from './types';
 
 export async function waitForModemStream(
@@ -67,7 +66,10 @@ export async function waitForModemStream(
                         options.onExtracting &&
                         isModemExtractingStatusChunk(res)
                     ) {
-                        options.onExtracting(res.progressDetail.current, res.progressDetail.units);
+                        options.onExtracting({
+                            value: res.progressDetail.current,
+                            unit: res.progressDetail.units,
+                        });
                         return;
                     }
 

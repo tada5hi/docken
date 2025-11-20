@@ -10,6 +10,7 @@ import {
     createClient,
     waitForStream,
 } from '../../src';
+import type { Quantity } from '../../src/types';
 
 describe('daemon', () => {
     let client : Client;
@@ -19,15 +20,10 @@ describe('daemon', () => {
     });
 
     it('should pull image', async () => {
-        const image = client.getImage('hello-world:latest');
-        await new Promise<void>((resolve) => {
-            image.remove(resolve);
-        });
-
         const imageStream = await client.pull('hello-world:latest');
 
         const downloadingProgress : Progress[] = [];
-        const extractingProgress : number[] = [];
+        const extractingProgress : Quantity[] = [];
 
         await waitForStream(client, imageStream, {
             onDownloading(input) {
