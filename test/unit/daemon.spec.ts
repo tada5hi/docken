@@ -56,7 +56,7 @@ describe('daemon', () => {
         expect(pulledProgress.length).toEqual(1);
     });
 
-    fit('should inspect image', async () => {
+    it('should inspect image', async () => {
         const image = client.getImage('hello-world:latest');
         const info = await image.inspect();
 
