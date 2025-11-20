@@ -5,12 +5,9 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import type { Client, ModemProgress } from '../../src';
+import type { Client, Progress } from '../../src';
 import {
     createClient,
-    isModemDownloadProgress,
-    isModemExtractingProgress,
-    isModemPulledProgress,
     waitForStream,
 } from '../../src';
 
@@ -29,31 +26,20 @@ describe('daemon', () => {
 
         const imageStream = await client.pull('hello-world:latest');
 
-        const downloadingProgress : ModemProgress[] = [];
-        const extractingProgress : ModemProgress[] = [];
-        const pulledProgress : ModemProgress[] = [];
+        const downloadingProgress : Progress[] = [];
+        const extractingProgress : number[] = [];
 
         await waitForStream(client, imageStream, {
-            onProgress(res) {
-                if (isModemDownloadProgress(res)) {
-                    downloadingProgress.push(res);
-                    return;
-                }
-
-                if (isModemExtractingProgress(res)) {
-                    extractingProgress.push(res);
-                    return;
-                }
-
-                if (isModemPulledProgress(res)) {
-                    pulledProgress.push(res);
-                }
+            onDownloading(input) {
+                downloadingProgress.push(input);
+            },
+            onExtracting(input) {
+                extractingProgress.push(input);
             },
         });
 
         expect(downloadingProgress.length).toBeGreaterThanOrEqual(0);
         expect(extractingProgress.length).toBeGreaterThanOrEqual(0);
-        expect(pulledProgress.length).toEqual(1);
     });
 
     it('should inspect image', async () => {
@@ -63,5 +49,24 @@ describe('daemon', () => {
         expect(info.Id).toBeDefined();
         expect(info.Created).toBeDefined();
         expect(info.Size).toBeGreaterThan(0);
+    });
+
+    it('should build image', async () => {
+        const image = await client.buildImage({
+            src: ['.'],
+            context: 'test/data/daemon/',
+        }, {
+            t: 'tada5hi/test',
+        });
+
+        const steps : Progress[] = [];
+
+        await waitForStream(client, image, {
+            onBuilding(step) {
+                steps.push(step);
+            },
+        });
+
+        expect(steps.length).toEqual(4);
     });
 });

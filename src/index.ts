@@ -8,3 +8,5 @@
 export * from './client';
 export * from './modem';
 export * from './scan';
+
+export { Progress } from './helpers/progress';

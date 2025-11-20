@@ -11,7 +11,7 @@ import { scanDirectory } from '../../../src';
 
 describe('scan', () => {
     it('should scan directory correctly', async () => {
-        const directory = await scanDirectory('test/data');
+        const directory = await scanDirectory('test/data/scan');
         expect(directory.images).toEqual([
             {
                 path: `group${path.sep}image`,
