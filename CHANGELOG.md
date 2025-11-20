@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/tada5hi/docken/compare/v2.0.0...v2.0.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* set dockerode types as dependency ([376d8c0](https://github.com/tada5hi/docken/commit/376d8c0b7b9779bcc55aa11fe2b55a5fe0cba588))
+
 ## [2.0.0](https://github.com/tada5hi/docken/compare/v1.1.1...v2.0.0) (2025-11-20)
 
 
