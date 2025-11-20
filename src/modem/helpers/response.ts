@@ -9,7 +9,8 @@ import type { Modem } from '../types';
 import { extractErrorFromModemResponse } from './response-error';
 
 export type ModemStreamWaitOptions = {
-    onProgress?: (res: any) => any
+    onFinished?: () => void,
+    onProgress?: (res: any) => void
 };
 
 export async function waitForModemStream(
@@ -25,6 +26,10 @@ export async function waitForModemStream(
                 if (error) {
                     reject(error);
                     return;
+                }
+
+                if (options.onFinished) {
+                    options.onFinished();
                 }
 
                 resolve(output);

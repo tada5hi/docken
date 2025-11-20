@@ -5,6 +5,6 @@
  *  view the LICENSE file that was distributed with this source code.
  */
 
-import type { Client } from '../client/types';
+import type { Client } from '../client';
 
 export type Modem = Client['modem'];
