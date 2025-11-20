@@ -14,14 +14,21 @@ export {
     ModemStreamChunk,
 };
 
-export type ModemStreamWaitOptions = {
-    onFinished?: () => void,
-    onChunk?: (input: ObjectLiteral) => void | Promise<void>,
-    onStreamChunk?: (input: ModemStreamChunk) => void | Promise<void>,
-    onStatusChunk?: (input: ModemStatusChunk) => void | Promise<void>,
+export type ModemOnFinishedFn = () => void | Promise<void>;
+export type ModemOnChunkFn = (input: ObjectLiteral) => void | Promise<void>;
+export type ModemOnStreamChunkFn = (input: ModemStreamChunk) => void | Promise<void>;
+export type ModemOnStatusChunkFn = (input: ModemStatusChunk) => void | Promise<void>;
+export type ModemOnProgressFn = (input: Progress) => void | Promise<void>;
+export type ModemOnQuantityFn = (quantity: Quantity) => void | Promise<void>;
 
-    onPushing?: (input: Progress) => void | Promise<void>,
-    onDownloading?: (input: Progress) => void | Promise<void>,
-    onExtracting?: (quantity: Quantity) => void | Promise<void>,
-    onBuilding?: (input: Progress) => void | Promise<void>,
+export type ModemStreamWaitOptions = {
+    onFinished?: ModemOnFinishedFn,
+    onChunk?: ModemOnChunkFn,
+    onStreamChunk?: ModemOnStreamChunkFn,
+    onStatusChunk?: ModemOnStatusChunkFn,
+
+    onPushing?: ModemOnProgressFn,
+    onDownloading?: ModemOnProgressFn,
+    onExtracting?: ModemOnQuantityFn,
+    onBuilding?: ModemOnProgressFn,
 };
