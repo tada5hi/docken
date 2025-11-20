@@ -1,3 +1,14 @@
+# Changelog
+
+## [1.1.2](https://github.com/tada5hi/docken/compare/v1.1.1...v1.1.2) (2025-11-20)
+
+
+### Bug Fixes
+
+* bump dependencies & replaced semantic-release with release-please ([f7f8cf4](https://github.com/tada5hi/docken/commit/f7f8cf4ba09a95bcf461b45bce8d236fc0239508))
+* **deps:** bump the minorandpatch group across 1 directory with 10 updates ([#26](https://github.com/tada5hi/docken/issues/26)) ([cd27576](https://github.com/tada5hi/docken/commit/cd2757654979254b0f25eeb3199e25364c02fa31))
+* **deps:** bump the minorandpatch group across 1 directory with 10 updates ([#51](https://github.com/tada5hi/docken/issues/51)) ([7a06948](https://github.com/tada5hi/docken/commit/7a069486749f6618e87bc8e64a14c03dba1dfefa))
+
 ## [1.1.1](https://github.com/tada5hi/docken/compare/v1.1.0...v1.1.1) (2025-02-19)
 
 
@@ -10,14 +21,14 @@
 
 * optimize scanning directory ([e83c070](https://github.com/tada5hi/docken/commit/e83c0709f7d9dfca79cc5afd2b82c6932229f929))
 
-# [1.1.0](https://github.com/tada5hi/docken/compare/v1.0.0...v1.1.0) (2025-02-18)
+## [1.1.0](https://github.com/tada5hi/docken/compare/v1.0.0...v1.1.0) (2025-02-18)
 
 
 ### Features
 
 * enable inheritance of parent meta attributes ([f5c2ac9](https://github.com/tada5hi/docken/commit/f5c2ac9b8180d2c8c8d1729b8fbf86fc15180c19))
 
-# 1.0.0 (2025-02-18)
+## 1.0.0 (2025-02-18)
 
 
 ### Bug Fixes
