@@ -26,7 +26,7 @@
         "dist/"
     ],
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22.0.0"
     },
     "scripts": {
         "build:types": "tsc --emitDeclarationOnly",
@@ -51,21 +51,20 @@
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^16.0.3",
         "@rollup/plugin-swc": "^0.4.0",
-        "@swc/core": "^1.14.0",
+        "@swc/core": "^1.15.2",
         "@tada5hi/eslint-config-typescript": "^1.2.17",
-        "@tada5hi/semantic-release": "^0.3.2",
         "@tada5hi/tsconfig": "^0.6.0",
-        "@types/dockerode": "^3.3.45",
-        "@types/jest": "^29.5.13",
-        "@types/node": "^22.13.14",
-        "cross-env": "^7.0.3",
+        "@types/dockerode": "^3.3.47",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^24.10.1",
+        "cross-env": "^10.1.0",
         "eslint": "^8.57.1",
-        "jest": "^29.7.0",
-        "rimraf": "^6.1.0",
-        "rollup": "^4.52.5",
-        "semantic-release": "^22.0.12",
+        "jest": "^30.2.0",
+        "rimraf": "^6.1.2",
+        "rollup": "^4.53.3",
         "ts-jest": "^29.4.5",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "workspaces-publish": "^1.5.0"
     },
     "dependencies": {
         "dockerode": "^4.0.9",
