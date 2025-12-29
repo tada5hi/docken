@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/tada5hi/docken/compare/v2.0.1...v2.0.2) (2025-12-29)
+
+
+### Bug Fixes
+
+* export library path ([691603e](https://github.com/tada5hi/docken/commit/691603ecf141cbcd5ac09f48d215c9a4dac2daa0))
+
 ## [2.0.1](https://github.com/tada5hi/docken/compare/v2.0.0...v2.0.1) (2025-11-20)
 
 
