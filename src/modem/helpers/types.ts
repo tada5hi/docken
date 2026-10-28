@@ -9,7 +9,7 @@ import type { Progress } from '../../helpers';
 import type { ObjectLiteral, Quantity } from '../../types';
 import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
 
-export {
+export type {
     ModemStatusChunk,
     ModemStreamChunk,
 };
