@@ -5,7 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import { isObject, load } from 'locter';
+import { isObject } from 'smob';
 import fs from 'node:fs';
 import path from 'node:path';
 import { MetaFileName, MetaType } from './constants';
@@ -13,7 +13,7 @@ import { MetaFileName, MetaType } from './constants';
 import type { DirectoryMeta } from './types';
 
 async function loadJSONRecord(filePath: string) {
-    const content = await load(filePath);
+    const content : unknown = JSON.parse(await fs.promises.readFile(filePath, 'utf-8'));
     /* istanbul ignore next */
     if (!isObject(content)) {
         throw new Error('The file content could not be read.');
