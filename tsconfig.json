@@ -9,6 +9,8 @@
         "moduleResolution": "Bundler",
         "noUncheckedIndexedAccess": false,
         "outDir": "dist",
+        "rootDir": "src",
+        "ignoreDeprecations": "6.0",
         "target": "ESNext"
     },
     "include": [
