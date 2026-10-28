@@ -6,6 +6,8 @@
             "DOM"
         ],
         "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "noUncheckedIndexedAccess": false,
         "outDir": "dist",
         "target": "ESNext"
     },
