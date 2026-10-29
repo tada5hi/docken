@@ -14,7 +14,9 @@ import type {
 } from './types';
 import type { ScanResultItem } from './result';
 import {
-    MetaType, detectDirectoryMeta, readMetaFile,
+    MetaType, 
+    detectDirectoryMeta, 
+    readMetaFile,
 } from './meta';
 
 type DirectoryScanContext = {
@@ -55,17 +57,13 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
                 ),
             };
         } else if (ctx.parent && ctx.parent.attributes) {
-            meta.attributes = {
-                ...ctx.parent.attributes,
-            };
+            meta.attributes = { ...ctx.parent.attributes };
         }
 
         if (directoryMeta.type === MetaType.GROUP) {
             output.groups.push(meta);
 
-            ctx.parent = {
-                ...meta,
-            };
+            ctx.parent = { ...meta };
         } else {
             output.images.push(meta);
         }
@@ -76,9 +74,7 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
                 path: path.join(ctx.parent.path, directoryName),
             };
         } else {
-            ctx.parent = {
-                path: directoryName,
-            };
+            ctx.parent = { path: directoryName };
         }
     }
 
@@ -86,7 +82,7 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
 
     const entries = await fs.promises.opendir(ctx.cwd, { encoding: 'utf-8' });
 
-    // eslint-disable-next-line no-restricted-syntax
+     
     for await (const dirent of entries) {
         if (!dirent.isDirectory()) {
             continue;
