@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.3](https://github.com/tada5hi/docken/compare/v2.0.2...v2.0.3) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps-dev:** bump @babel/core from 7.28.5 to 7.29.7 ([#98](https://github.com/tada5hi/docken/issues/98)) ([4cb669a](https://github.com/tada5hi/docken/commit/4cb669a241dc17f1a1f6a9d5653a7f19780a9f7f))
+* **deps-dev:** bump sigstore from 4.0.0 to 4.1.1 ([#97](https://github.com/tada5hi/docken/issues/97)) ([4c8dc0d](https://github.com/tada5hi/docken/commit/4c8dc0d2209770659fb08e6ddaa12835298ed625))
+* **deps:** bump protobufjs from 7.5.5 to 7.6.6 ([#96](https://github.com/tada5hi/docken/issues/96)) ([0b2f9cd](https://github.com/tada5hi/docken/commit/0b2f9cd33e8874dcc7bfddefeba339f519820b4e))
+* **deps:** bump the minorandpatch group across 1 directory with 11 updates ([#80](https://github.com/tada5hi/docken/issues/80)) ([286b122](https://github.com/tada5hi/docken/commit/286b122c9d4102bca74ebabec27e7671614e1b54))
+
 ## [2.0.2](https://github.com/tada5hi/docken/compare/v2.0.1...v2.0.2) (2025-12-29)
 
 
