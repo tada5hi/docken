@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="docken-b-title docken-b-desc">
+<title id="docken-b-title">Docken — Image harbour</title>
+<desc id="docken-b-desc">A stack of image layers rests in a hull-shaped cradle above a daemon signal.</desc>
+<style>
+:root{--accent:#3586b3;--second:#bc9145;--ink:#253447;--paper:#f7fafc;--line:#8394a7;--wash:#3586b318}
+@media(prefers-color-scheme:dark){:root{--ink:#e4ebf3;--paper:#182332;--line:#8495aa;--wash:#3586b322}}
+.a{stroke:var(--accent)}.b{stroke:var(--second)}.af{fill:var(--accent)}.bf{fill:var(--second)}.ink{fill:var(--ink)}.paper{stroke:var(--line)}.line{stroke:var(--line)}.wash{fill:var(--wash)}.white{fill:#fff}.neutral{fill:var(--paper)}
+</style>
+<path d="M35 148 H221 L194 199 H65 Z" class="a" stroke-width="6" fill="var(--wash)" stroke-linecap="round" stroke-linejoin="round" /><path d="M65 148 V111 H192 V148 M89 111 V74 H166 V111 M114 74 V39 H141 V74" class="b" stroke-width="5" fill="var(--paper)" stroke-linecap="round" stroke-linejoin="round" /><path d="M89 112 V148 M114 112 V148 M140 112 V148 M166 112 V148 M114 74 V111 M141 74 V111" class="b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" /><path d="M73 221 Q91 211 109 221 Q127 231 145 221 Q163 211 181 221" class="a" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" /><circle cx="196" cy="176" r="5" class="af" />
+</svg>
