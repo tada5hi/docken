@@ -25,6 +25,20 @@ waitForStream delegates to the Docker modem, dispatches chunks to specific progr
 
 <img src=".github/assets/mechanism.svg" width="960" alt="waitForStream delegates to the Docker modem, dispatches chunks to specific progress callbacks before generic callbacks, and resolves output or rejects the completion error. Callback promises are not awaited." />
 
+**Table of Contents**
+
+- [Why Docken?](#why-docken)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Daemon](#daemon)
+  - [FS Scan](#fs-scan)
+- [Progress streams](#progress-streams)
+- [Filesystem catalog](#filesystem-catalog)
+- [API](#api)
+- [Notes](#notes)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```bash
@@ -44,6 +58,26 @@ console.log(isClient(client)); // true; constructing does not contact Docker
 const catalog = await scanDirectory('./images');
 console.log(catalog.images, catalog.groups);
 ```
+
+### Daemon
+
+`createClient(options)` returns a dockerode client and accepts dockerode's connection options, such as `socketPath`. You then call dockerode methods directly. Construction alone does not check connectivity. The [progress stream example](#progress-streams) shows how to await a real pull operation.
+
+### FS Scan
+
+**Image:** a directory containing a `Dockerfile` or an `image.json` descriptor. A descriptor can replace the Dockerfile for discovery; scanning does not prove that the directory can be built.
+
+**Group:** a directory containing `image-group.json`. Its descriptor attributes are inherited by descendant items and can be overridden by child descriptors.
+
+**Metadata:** each discovered item has these fields:
+
+| Field | Meaning |
+|---|---|
+| `path` | Filesystem path relative to the scan input context, with host-platform separators; a recognized root includes its directory name |
+| `virtualPath` | Recognized group/image directory names joined with `/`; ordinary intermediate directories do not add a virtual segment |
+| `attributes` | Optional descriptor fields, merged over inherited parent-group fields |
+
+Unlike `docker-scan`, Docken does not interpret descriptor IDs as virtual path segments. Its `MetaFileName.GROUP` is `image-group.json`.
 
 ## Progress streams
 
