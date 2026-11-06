@@ -8,3 +8,4 @@
 export * from './chunk-status';
 export * from './chunk-stream';
 export * from './response-error';
+export * from './types';

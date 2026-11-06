@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll } from 'vitest';
 /*
  * Copyright (c) 2025.
  * Author Peter Placzek (tada5hi)

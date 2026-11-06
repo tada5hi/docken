@@ -1,3 +1,4 @@
+import type { ModemStreamChunk } from './types';
 /*
  * Copyright (c) 2025.
  * Author Peter Placzek (tada5hi)
@@ -9,16 +10,13 @@ import { isObject } from 'smob';
 import type { Progress } from '../../helpers';
 import { buildProgress } from '../../helpers';
 
-export type ModemStreamChunk = {
-    stream: string,
-};
-
 export function isModemProgressStream(input: unknown) : input is ModemStreamChunk {
     return isObject(input) && typeof input.stream === 'string';
 }
 
 export function parseModemProgressStreamAsStepStart(input: ModemStreamChunk) : Progress | undefined {
     const matches = input.stream.match(/^Step\s([0-9])\/([0-9])\s:.*/s);
+
     if (!matches) {
         return undefined;
     }

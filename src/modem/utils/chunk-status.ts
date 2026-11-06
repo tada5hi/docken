@@ -1,3 +1,10 @@
+import type {
+    ModemDownloadingStatusChunk,
+    ModemExtractingStatusChunk,
+    ModemGenericStatusChunk,
+    ModemPushingStatusChunk,
+    ModemStatusChunk,
+} from './types';
 /*
  * Copyright (c) 2025.
  * Author Peter Placzek (tada5hi)
@@ -7,69 +14,8 @@
 
 import { isObject } from 'smob';
 
-export type ModemStatusChunkDetail = {
-    current: number,
-    total: number,
-    hidecounts: boolean,
-    units: string
-};
-
-export type ModemGenericStatusChunk = {
-    status: string,
-    progressDetail?: Partial<ModemStatusChunkDetail>,
-    progress?: string,
-    id: string
-};
-
-export type ModemExtractingStatusChunk = {
-    status: 'Extracting',
-    progressDetail: Pick<ModemStatusChunkDetail, 'current' | 'units'>,
-    progress: string,
-    id: string
-};
-
-export type ModemPushingStatusChunk = {
-    status: 'Pushing',
-    progressDetail: Pick<ModemStatusChunkDetail, 'current' | 'total'>,
-    progress: string,
-    id: string
-};
-
-export type ModemDownloadingStatusChunk = {
-    status: 'Downloading',
-    progressDetail: Pick<ModemStatusChunkDetail, 'current' | 'total'>,
-    progress: string,
-    id: string
-};
-
-export type ModemWaitingStatusChunk = {
-    status: 'Waiting',
-    id: string
-};
-
-export type ModemPushedStatusChunk = {
-    status: 'Pushed',
-    id: string
-};
-
-export type ModemPullCompleteStatusChunk = {
-    status: 'Pull complete',
-    progressDetail: Pick<ModemStatusChunkDetail, 'hidecounts'>,
-    id: string
-};
-
-export type ModemStatusChunk = ModemGenericStatusChunk |
-ModemPushingStatusChunk |
-ModemDownloadingStatusChunk |
-ModemExtractingStatusChunk |
-ModemWaitingStatusChunk |
-ModemPushedStatusChunk |
-ModemPullCompleteStatusChunk;
-
 export function isModemStatusChunk(input: unknown) : input is ModemStatusChunk {
-    if (!isObject(input)) return false;
-
-    if (typeof input.status !== 'string') {
+    if (!isObject(input) || (typeof input.status !== 'string')) {
         return false;
     }
 

@@ -14,6 +14,7 @@ import type { DirectoryMeta } from './types';
 
 async function loadJSONRecord(filePath: string) {
     const content = await load(filePath);
+
     /* istanbul ignore next */
     if (!isObject(content)) {
         throw new Error('The file content could not be read.');
@@ -52,6 +53,7 @@ export async function detectDirectoryMeta(
             path.join(directory, 'Dockerfile'),
             fs.constants.F_OK | fs.constants.R_OK,
         );
+
         return { type: MetaType.IMAGE, fileExists: false };
     } catch (e) {
         // don't do anything

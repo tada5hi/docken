@@ -14,8 +14,8 @@ import type {
 } from './types';
 import type { ScanResultItem } from './result';
 import {
-    MetaType, 
-    detectDirectoryMeta, 
+    MetaType,
+    detectDirectoryMeta,
     readMetaFile,
 } from './meta';
 
@@ -32,8 +32,10 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
 
     const directoryName = path.basename(ctx.cwd);
     const directoryMeta = await detectDirectoryMeta(ctx.cwd);
+
     if (directoryMeta) {
         let meta : ScanResultItem;
+
         if (ctx.parent) {
             meta = {
                 virtualPath: ctx.parent.virtualPath ?
@@ -82,7 +84,7 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
 
     const entries = await fs.promises.opendir(ctx.cwd, { encoding: 'utf-8' });
 
-     
+
     for await (const dirent of entries) {
         if (!dirent.isDirectory()) {
             continue;
