@@ -20,6 +20,7 @@ export function extractErrorFromModemResponse(res: unknown) : Error | null {
         isObject(raw.errorDetail)
     ) {
         let message : string;
+
         if (typeof raw.errorDetail.message === 'string') {
             message = raw.errorDetail.message;
         } else {

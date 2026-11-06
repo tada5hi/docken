@@ -33,8 +33,10 @@ export async function waitForModemStream(
             stream,
             (error, output) => {
                 error = error || extractErrorFromModemResponse(output);
+
                 if (error) {
                     reject(error);
+
                     return;
                 }
 
@@ -51,6 +53,7 @@ export async function waitForModemStream(
                         isModemDownloadingStatusChunk(res)
                     ) {
                         options.onDownloading(buildProgress(res.progressDetail.current, res.progressDetail.total));
+
                         return;
                     }
 
@@ -59,6 +62,7 @@ export async function waitForModemStream(
                         isModemPushingStatusChunk(res)
                     ) {
                         options.onPushing(buildProgress(res.progressDetail.current, res.progressDetail.total));
+
                         return;
                     }
 
@@ -70,11 +74,13 @@ export async function waitForModemStream(
                             value: res.progressDetail.current,
                             unit: res.progressDetail.units,
                         });
+
                         return;
                     }
 
                     if (options.onStatusChunk) {
                         options.onStatusChunk(res);
+
                         return;
                     }
                 }
@@ -85,19 +91,23 @@ export async function waitForModemStream(
                             options.onBuilding(buildProgress(step.current + 1, step.total));
 
                             step = undefined;
+
                             return;
                         }
 
                         const temp = parseModemProgressStreamAsStepStart(res);
+
                         if (temp) {
                             step = temp;
                             options.onBuilding(step);
+
                             return;
                         }
                     }
 
                     if (options.onStreamChunk) {
                         options.onStreamChunk(res);
+
                         return;
                     }
                 }
