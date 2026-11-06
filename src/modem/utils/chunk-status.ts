@@ -41,3 +41,17 @@ export function isModemExtractingStatusChunk(input: ModemGenericStatusChunk) : i
 export function isModemPushingStatusChunk(input: ModemGenericStatusChunk) : input is ModemPushingStatusChunk {
     return input.status === 'Pushing' && isObject(input.progressDetail);
 }
+
+// Retain types imported from the existing declaration path.
+// eslint-disable-next-line @tada5hi/no-reexport-shims -- Preserve the published declaration import path.
+export type {
+    ModemStatusChunkDetail,
+    ModemGenericStatusChunk,
+    ModemExtractingStatusChunk,
+    ModemPushingStatusChunk,
+    ModemDownloadingStatusChunk,
+    ModemWaitingStatusChunk,
+    ModemPushedStatusChunk,
+    ModemPullCompleteStatusChunk,
+    ModemStatusChunk,
+} from './types';

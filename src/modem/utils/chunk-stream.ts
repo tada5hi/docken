@@ -30,3 +30,7 @@ export function parseModemProgressStreamAsStepStart(input: ModemStreamChunk) : P
 export function isModemProgressStreamEndStep(input: ModemStreamChunk) : boolean {
     return !!input.stream.match(/^ ---> [a-z0-9]+\n$/);
 }
+
+// Retain types imported from the existing declaration path.
+// eslint-disable-next-line @tada5hi/no-reexport-shims -- Preserve the published declaration import path.
+export type { ModemStreamChunk } from './types';

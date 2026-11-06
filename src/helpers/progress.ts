@@ -13,3 +13,7 @@ export function buildProgress(current: number, total: number): Progress {
         percent: Math.floor((current / total) * 100),
     };
 }
+
+// Retain types imported from the existing declaration path.
+// eslint-disable-next-line @tada5hi/no-reexport-shims -- Preserve the published declaration import path.
+export type { Progress } from './types';

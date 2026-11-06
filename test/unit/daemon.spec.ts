@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 /*
  * Copyright (c) 2025.
  * Author Peter Placzek (tada5hi)
