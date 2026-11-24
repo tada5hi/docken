@@ -16,7 +16,6 @@ import type { DirectoryMeta } from './types';
 async function loadJSONRecord(filePath: string) {
     const content : unknown = await read(filePath);
 
-    /* istanbul ignore next */
     if (!isObject(content)) {
         throw new Error('The file content could not be read.');
     }
@@ -24,52 +23,37 @@ async function loadJSONRecord(filePath: string) {
     return content;
 }
 
-export async function detectDirectoryMeta(
+async function isReadable(filePath: string) : Promise<boolean> {
+    try {
+        await fs.promises.access(
+            filePath,
+            fs.constants.F_OK | fs.constants.R_OK,
+        );
+
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+export async function readDirectoryMeta(
     directory: string,
 ): Promise<DirectoryMeta | undefined> {
-    try {
-        await fs.promises.access(
-            path.join(directory, MetaFileName.IMAGE),
-            fs.constants.F_OK | fs.constants.R_OK,
-        );
+    const imageFile = path.join(directory, MetaFileName.IMAGE);
 
-        return { type: MetaType.IMAGE, fileExists: true };
-    } catch (e) {
-        // don't do anything
+    if (await isReadable(imageFile)) {
+        return { type: MetaType.IMAGE, attributes: await loadJSONRecord(imageFile) };
     }
 
-    try {
-        await fs.promises.access(
-            path.join(directory, MetaFileName.GROUP),
-            fs.constants.F_OK | fs.constants.R_OK,
-        );
+    const groupFile = path.join(directory, MetaFileName.GROUP);
 
-        return { type: MetaType.GROUP, fileExists: true };
-    } catch (e) {
-        // don't do anything
+    if (await isReadable(groupFile)) {
+        return { type: MetaType.GROUP, attributes: await loadJSONRecord(groupFile) };
     }
 
-    try {
-        await fs.promises.access(
-            path.join(directory, 'Dockerfile'),
-            fs.constants.F_OK | fs.constants.R_OK,
-        );
-
-        return { type: MetaType.IMAGE, fileExists: false };
-    } catch (e) {
-        // don't do anything
+    if (await isReadable(path.join(directory, 'Dockerfile'))) {
+        return { type: MetaType.IMAGE };
     }
 
     return undefined;
-}
-
-export async function readMetaFile(
-    directory: string,
-    type: MetaType,
-) : Promise<Record<string, any>> {
-    if (type === MetaType.IMAGE) {
-        return loadJSONRecord(path.join(directory, MetaFileName.IMAGE));
-    }
-
-    return loadJSONRecord(path.join(directory, MetaFileName.GROUP));
 }

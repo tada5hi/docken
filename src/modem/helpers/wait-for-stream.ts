@@ -5,30 +5,93 @@
  *  view the LICENSE file that was distributed with this source code.
  */
 
-import type { Progress } from '../../helpers';
-import { buildProgress } from '../../helpers';
 import type { Modem } from '../types';
-import {
-    ModemStreamOutput,
-    extractErrorFromModemResponse,
-    isModemDownloadingStatusChunk,
-    isModemExtractingStatusChunk,
-    isModemProgressLineEndStep,
-    isModemProgressStream,
-    isModemPushingStatusChunk,
-    isModemStatusChunk,
-    parseModemProgressLineAsStepStart,
-} from '../utils';
+import { extractErrorFromModemResponse } from '../utils';
+import type { ModemStreamEvent } from '../reader';
+import { ModemStreamReader } from '../reader';
 import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
+
+/**
+ * Call the callback for one event.
+ * Returns true when the event handled its chunk, so no later event of
+ * the chunk and no onChunk fallback runs.
+ */
+function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamWaitOptions) : boolean {
+    switch (event.kind) {
+        case 'building': {
+            if (options.onBuilding) {
+                options.onBuilding(event.progress);
+            }
+
+            return false;
+        }
+        case 'downloading': {
+            if (options.onDownloading) {
+                options.onDownloading(event.progress);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'pushing': {
+            if (options.onPushing) {
+                options.onPushing(event.progress);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'extracting': {
+            if (options.onExtracting) {
+                options.onExtracting(event.quantity);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'status': {
+            break;
+        }
+        case 'output': {
+            // the chunk was delivered as building events already
+            if (
+                options.streamBuildSteps === false &&
+                options.onBuilding &&
+                event.onlyBuildSteps
+            ) {
+                return true;
+            }
+
+            if (options.onStreamChunk) {
+                options.onStreamChunk(event.chunk);
+
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    // a status chunk without a matching specific callback
+    if (options.onStatusChunk) {
+        options.onStatusChunk(event.chunk);
+
+        return true;
+    }
+
+    return false;
+}
 
 export async function waitForModemStream(
     modem: Pick<Modem, 'followProgress'>,
     stream: NodeJS.ReadableStream,
     options: ModemStreamWaitOptions = {},
 ) {
-    let step : Progress | undefined;
-    const output = new ModemStreamOutput();
+    const reader = new ModemStreamReader();
 
     return new Promise<unknown>((resolve, reject) => {
         modem.followProgress(
@@ -38,7 +101,7 @@ export async function waitForModemStream(
 
                 if (failure) {
                     reject(new ModemStreamError(failure.message, {
-                        output: output.lines(),
+                        output: reader.lines(),
                         cause: failure,
                     }));
 
@@ -52,83 +115,8 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
-                // a chunk is withheld from onStreamChunk when every line it completed was a building event
-                let consumed = false;
-
-                if (isModemProgressStream(res)) {
-                    const lines = output.push(res.stream);
-
-                    if (options.onBuilding) {
-                        let events = 0;
-
-                        for (const line of lines) {
-                            if (step && isModemProgressLineEndStep(line)) {
-                                options.onBuilding(buildProgress(step.current + 1, step.total));
-                                step = undefined;
-                                events++;
-
-                                continue;
-                            }
-
-                            const temp = parseModemProgressLineAsStepStart(line);
-
-                            if (temp) {
-                                step = temp;
-                                options.onBuilding(step);
-                                events++;
-                            }
-                        }
-
-                        consumed = events > 0 && events === lines.length;
-                    }
-                }
-
-                if (isModemStatusChunk(res)) {
-                    if (
-                        options.onDownloading &&
-                        isModemDownloadingStatusChunk(res)
-                    ) {
-                        options.onDownloading(buildProgress(res.progressDetail.current, res.progressDetail.total));
-
-                        return;
-                    }
-
-                    if (
-                        options.onPushing &&
-                        isModemPushingStatusChunk(res)
-                    ) {
-                        options.onPushing(buildProgress(res.progressDetail.current, res.progressDetail.total));
-
-                        return;
-                    }
-
-                    if (
-                        options.onExtracting &&
-                        isModemExtractingStatusChunk(res)
-                    ) {
-                        options.onExtracting({
-                            value: res.progressDetail.current,
-                            unit: res.progressDetail.units,
-                        });
-
-                        return;
-                    }
-
-                    if (options.onStatusChunk) {
-                        options.onStatusChunk(res);
-
-                        return;
-                    }
-                }
-
-                if (isModemProgressStream(res)) {
-                    if (consumed) {
-                        return;
-                    }
-
-                    if (options.onStreamChunk) {
-                        options.onStreamChunk(res);
-
+                for (const event of reader.push(res)) {
+                    if (dispatchModemStreamEvent(event, options)) {
                         return;
                     }
                 }

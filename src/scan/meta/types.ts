@@ -9,5 +9,6 @@ import type { MetaType } from './constants';
 
 export type DirectoryMeta = {
     type: MetaType,
-    fileExists: boolean,
+    /** Present exactly when image.json / image-group.json exists and holds a JSON object. */
+    attributes?: Record<string, any>,
 };

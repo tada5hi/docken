@@ -99,9 +99,11 @@ This example contacts your Docker daemon and may download an image. `waitForMode
 | `onDownloading` / `onPushing` / `onBuilding` | `{ current, total, percent }` |
 | `onExtracting` | `{ value, unit }` |
 | `onStatusChunk` | An otherwise unhandled status chunk |
-| `onStreamChunk` | An otherwise unhandled textual stream chunk |
+| `onStreamChunk` | Every textual stream chunk, including build step lines also reported to `onBuilding` (see `streamBuildSteps`) |
 | `onChunk` | A chunk not handled by a more specific callback |
 | `onFinished` | Successful completion notification, no arguments |
+
+Set `streamBuildSteps: false` to keep chunks that contain only build step lines away from `onStreamChunk` and `onChunk` while `onBuilding` is registered; it defaults to `true`.
 
 Callbacks are dispatched by specificity; a chunk handled by an operation callback is not also sent to every generic callback. `buildProgress(current, total)` floors the percentage and does not clamp it or guard a zero total.
 
@@ -155,9 +157,8 @@ All names below are exported from `docken`. Types have no runtime value.
 | `Modem` | type | Type contract for modem |
 | `MetaType` | enum | Image and group categories |
 | `MetaFileName` | enum | image.json and image-group.json filenames |
-| `detectDirectoryMeta` | function | Detect image/group metadata or a Dockerfile |
-| `readMetaFile` | function | Load the image or group JSON descriptor |
-| `DirectoryMeta` | type | Type contract for directory meta |
+| `readDirectoryMeta` | function | Read a directory's image/group type and own metadata attributes |
+| `DirectoryMeta` | type | Type contract for a directory's type and own attributes |
 | `scanDirectory` | function | Discover image and group directories recursively |
 | `sortScanResultItemsByPath` | function | Sort scan items in place by filesystem path |
 | `ScanResultItem` | type | Type contract for scan result item |

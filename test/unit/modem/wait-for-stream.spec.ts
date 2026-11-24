@@ -147,7 +147,7 @@ describe('waitForModemStream', () => {
         expect(isModemStreamError(null)).toBe(false);
     });
 
-    it('should resolve and keep dispatching unchanged on success', async () => {
+    it('should resolve and pass every stream chunk on, build steps included', async () => {
         const received: string[] = [];
         let finished = false;
         const modem = createFakeModem(chunks, null, chunks);
@@ -162,7 +162,7 @@ describe('waitForModemStream', () => {
             },
         });
 
-        expect(received).toEqual(['boom\n']);
+        expect(received).toEqual(['Step 1/2 : FROM x\n', ' ---> abc\n', 'Step 2/2 : RUN fail\n', 'boom\n']);
         expect(finished).toBe(true);
     });
 
@@ -182,7 +182,7 @@ describe('waitForModemStream', () => {
         });
 
         expect(progress).toEqual([buildProgress(19, 22)]);
-        expect(forwarded).toEqual(['Step 10/']);
+        expect(forwarded).toEqual(['Step 10/', '11 : RUN x\n']);
     });
 
     it('should emit the +1 progress for an end-step line', async () => {
