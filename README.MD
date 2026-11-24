@@ -1,20 +1,13 @@
-<div align="center">
-
-<img src=".github/assets/logo.svg" width="144" height="144" alt="Docken logo" />
-
-<h1>Docken</h1>
-
-</div>
-
-[![npm version](https://img.shields.io/npm/v/docken)](https://www.npmjs.com/package/docken)
-[![CI status](https://img.shields.io/github/actions/workflow/status/tada5hi/docken/main.yml)](https://github.com/tada5hi/docken/actions)
-[![License](https://img.shields.io/npm/l/docken)](LICENSE)
-
-**A library providing utilities for the interaction with docker.**
-
-Use dockerode clients, await Docker progress streams and discover image directories with metadata.
-
-[Installation](#installation) · [Usage](#usage) · [API](#api) · [Notes](#notes)
+<p align="center"><img src=".github/assets/logo.svg" width="144" height="144" alt="Docken logo" /></p>
+<h1 align="center">Docken</h1>
+<p align="center"><strong>A library providing utilities for the interaction with docker.</strong></p>
+<p align="center">Use dockerode clients, await Docker progress streams and discover image directories with metadata.</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/docken"><img src="https://img.shields.io/npm/v/docken" alt="npm version" /></a>
+  <a href="https://github.com/tada5hi/docken/actions"><img src="https://img.shields.io/github/actions/workflow/status/tada5hi/docken/main.yml" alt="CI status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/docken" alt="License" /></a>
+</p>
+<p align="center"><a href="#installation">Installation</a> · <a href="#usage">Usage</a> · <a href="#api">API</a> · <a href="#notes">Notes</a></p>
 
 ---
 
