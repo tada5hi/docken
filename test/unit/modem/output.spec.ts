@@ -121,4 +121,27 @@ describe('modem > utils > output', () => {
         }
         expect(output.lines()).toHaveLength(1000);
     });
+
+    it('assembles a long unterminated line in linear time', () => {
+        const output = new ModemStreamOutput();
+        const chunk = 'x'.repeat(1024);
+        const start = performance.now();
+
+        for (let i = 0; i < 4096; i++) {
+            output.push(chunk);
+        }
+
+        expect(output.push('\n')).toEqual(['x'.repeat(4096 * 1024)]);
+        // quadratic re-scanning of the pending line took seconds here
+        expect(performance.now() - start).toBeLessThan(1000);
+    });
+
+    it('collapses redraws in chunks that carry no newline', () => {
+        const output = new ModemStreamOutput();
+        output.push('abc');
+        output.push('def\r10%');
+        output.push('\r50%\r');
+        output.push('\n');
+        expect(output.lines()).toEqual(['50%']);
+    });
 });

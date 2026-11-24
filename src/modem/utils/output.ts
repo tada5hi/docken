@@ -20,11 +20,17 @@ function cleanLine(raw: string): string {
 
 // Only the text after the last \r survives cleanLine, so earlier text can go.
 // A trailing \r run may end the line (\r\n split across chunks): keep it and the text before it.
+// Called only when new text holds a \r, so the backwards scan stops in that text.
 function collapsePending(pending: string): string {
-    const body = pending.replace(/\r+$/, '');
-    const last = body.lastIndexOf('\r');
+    let end = pending.length;
 
-    return (last === -1 ? body : body.slice(last + 1)) + pending.slice(body.length);
+    while (end > 0 && pending.charCodeAt(end - 1) === 13) {
+        end--;
+    }
+
+    const last = end > 0 ? pending.lastIndexOf('\r', end - 1) : -1;
+
+    return last === -1 ? pending : pending.slice(last + 1);
 }
 
 /**
@@ -51,9 +57,20 @@ export class ModemStreamOutput {
      * These are exactly the lines added to the retained output.
      */
     push(chunk: string): string[] {
-        const parts = (this.pending + chunk).split('\n');
+        // split only the new chunk: re-scanning a long pending line on every chunk is quadratic
+        const parts = chunk.split('\n');
+        const tail = parts.pop() ?? '';
 
-        this.pending = collapsePending(parts.pop() ?? '');
+        if (parts.length === 0) {
+            this.pending += tail;
+        } else {
+            parts[0] = this.pending + parts[0];
+            this.pending = tail;
+        }
+
+        if (tail.includes('\r')) {
+            this.pending = collapsePending(this.pending);
+        }
 
         const added: string[] = [];
 
