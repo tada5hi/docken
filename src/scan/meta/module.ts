@@ -13,7 +13,9 @@ import { MetaFileName, MetaType } from './constants';
 import type { DirectoryMeta } from './types';
 
 async function loadJSONRecord(filePath: string) {
-    const content : unknown = JSON.parse(await fs.promises.readFile(filePath, 'utf-8'));
+    // locter is ESM-only, a dynamic import keeps the CJS build working.
+    const { read } = await import('locter');
+    const content : unknown = await read(filePath);
 
     /* istanbul ignore next */
     if (!isObject(content)) {
