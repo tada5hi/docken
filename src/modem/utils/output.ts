@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2026.
  * Author Peter Placzek (tada5hi)
  * For the full copyright and license information,
  * view the LICENSE file that was distributed with this source code.
@@ -20,6 +20,24 @@ function cleanLine(raw: string): string {
         .trimEnd();
 }
 
+// Only the text after the last \r survives cleanLine, so earlier text can go.
+// A final \r may be the first half of a \r\n split across chunks: keep from the previous one.
+function collapsePending(pending: string): string {
+    const last = pending.lastIndexOf('\r');
+
+    if (last === -1) {
+        return pending;
+    }
+
+    if (last < pending.length - 1) {
+        return pending.slice(last + 1);
+    }
+
+    const previous = pending.lastIndexOf('\r', last - 1);
+
+    return previous === -1 ? pending : pending.slice(previous + 1);
+}
+
 /**
  * Bounded tail of the raw `stream` text of a docker build.
  */
@@ -37,7 +55,7 @@ export class ModemStreamOutput {
     push(chunk: string): void {
         const parts = (this.pending + chunk).split('\n');
 
-        this.pending = parts.pop() ?? '';
+        this.pending = collapsePending(parts.pop() ?? '');
 
         for (const part of parts) {
             const line = cleanLine(part);

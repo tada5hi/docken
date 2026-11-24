@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2026.
  * Author Peter Placzek (tada5hi)
  * For the full copyright and license information,
  * view the LICENSE file that was distributed with this source code.
@@ -59,5 +59,22 @@ describe('modem > utils > output', () => {
         first.push('x');
         expect(output.lines()).toEqual(['a', 'b']);
         expect(output.lines()).toEqual(['a', 'b']);
+    });
+
+    it('joins a \\r\\n split across chunks', () => {
+        const output = new ModemStreamOutput();
+        output.push('a\r');
+        output.push('\n');
+        expect(output.lines()).toEqual(['a']);
+    });
+
+    it('survives many progress rewrites without a newline', () => {
+        const output = new ModemStreamOutput();
+        for (let i = 0; i < 1000; i++) {
+            output.push(`${i}%\r`);
+        }
+        expect(output.lines()).toEqual(['999%']);
+        output.push('done\n');
+        expect(output.lines()).toEqual(['done']);
     });
 });
