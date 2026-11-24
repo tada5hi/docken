@@ -13,7 +13,7 @@
 
 ## Why Docken?
 
-Use dockerode clients, await Docker progress streams and discover image directories with metadata.
+dockerode hands you raw progress streams: build progress arrives as text lines, pull and push progress as status objects, and a failed build can still finish the stream, with the error only in its last chunk. Docken turns these streams into typed progress callbacks and a single rejection, and scans a directory of Dockerfiles into an image catalog.
 
 | Concern | Without it | With it |
 |---|---|---|
