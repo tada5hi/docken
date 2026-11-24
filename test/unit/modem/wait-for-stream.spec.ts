@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2026.
+ * Author Peter Placzek (tada5hi)
+ * For the full copyright and license information,
+ * view the LICENSE file that was distributed with this source code.
+ */
+
 import { Readable } from 'node:stream';
 import { describe, expect, it } from 'vitest';
 import type { Modem } from '../../../src/modem';
@@ -11,12 +18,17 @@ function createFakeModem(chunks: Record<string, any>[], error: Error | null, out
             for (const chunk of chunks) {
                 onProgress?.(chunk);
             }
+
             onFinished(error, output);
         },
     };
 }
 
-const stream = new Readable({ read() { this.push(null); } });
+const stream = new Readable({
+    read() {
+        this.push(null); 
+    }, 
+});
 
 async function catchError(promise: Promise<unknown>): Promise<unknown> {
     try {
@@ -24,6 +36,7 @@ async function catchError(promise: Promise<unknown>): Promise<unknown> {
     } catch (e) {
         return e;
     }
+
     return undefined;
 }
 
@@ -44,7 +57,11 @@ describe('waitForModemStream', () => {
         const error = await catchError(waitForModemStream(modem, stream, { onBuilding: () => {} }));
 
         expect(isModemStreamError(error)).toBe(true);
-        if (!isModemStreamError(error)) throw new Error('unreachable');
+
+        if (!isModemStreamError(error)) {
+            throw new Error('unreachable');
+        }
+
         expect(error.name).toBe('ModemStreamError');
         expect(error.message).toBe('returned a non-zero code: 1');
         expect(error.cause).toBeInstanceOf(Error);
@@ -58,17 +75,56 @@ describe('waitForModemStream', () => {
         const error = await catchError(waitForModemStream(modem, stream));
 
         expect(isModemStreamError(error)).toBe(true);
-        if (!isModemStreamError(error)) throw new Error('unreachable');
+
+        if (!isModemStreamError(error)) {
+            throw new Error('unreachable');
+        }
+
         expect(error.message).toBe('socket hang up');
         expect(error.cause).toBe(failure);
         expect(error.output).toEqual(['x']);
+    });
+
+    it('should mirror code, errno and syscall of the cause', async () => {
+        const failure = Object.assign(new Error('read ECONNRESET'), {
+            code: 'ECONNRESET', 
+            syscall: 'read', 
+            errno: -54, 
+        });
+        const modem = createFakeModem([], failure, []);
+        const error = await catchError(waitForModemStream(modem, stream));
+
+        if (!isModemStreamError(error)) {
+            throw new Error('not a ModemStreamError');
+        }
+
+        expect(error.code).toBe('ECONNRESET');
+        expect(error.syscall).toBe('read');
+        expect(error.errno).toBe(-54);
+    });
+
+    it('should expose no error properties for an errorDetail failure', async () => {
+        const modem = createFakeModem([], null, [{ errorDetail: { message: 'nope' } }]);
+        const error = await catchError(waitForModemStream(modem, stream));
+
+        if (!isModemStreamError(error)) {
+            throw new Error('not a ModemStreamError');
+        }
+
+        expect(error.code).toBeUndefined();
+        expect(error.errno).toBeUndefined();
+        expect(error.syscall).toBeUndefined();
+        expect(error.statusCode).toBeUndefined();
     });
 
     it('should honour outputLimit', async () => {
         const modem = createFakeModem(chunks, new Error('fail'), []);
         const error = await catchError(waitForModemStream(modem, stream, { outputLimit: 1 }));
 
-        if (!isModemStreamError(error)) throw new Error('not a ModemStreamError');
+        if (!isModemStreamError(error)) {
+            throw new Error('not a ModemStreamError');
+        }
+
         expect(error.output).toEqual(['boom']);
     });
 
@@ -86,8 +142,12 @@ describe('waitForModemStream', () => {
 
         await waitForModemStream(modem, stream, {
             onBuilding: () => {},
-            onStreamChunk: (chunk) => { received.push(chunk.stream); },
-            onFinished: () => { finished = true; },
+            onStreamChunk: (chunk) => {
+                received.push(chunk.stream); 
+            },
+            onFinished: () => {
+                finished = true; 
+            },
         });
 
         expect(received).toEqual(['boom\n']);

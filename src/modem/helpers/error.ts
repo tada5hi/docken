@@ -13,11 +13,41 @@ import { hasOwnProperty, isObject } from 'smob';
 export class ModemStreamError extends Error {
     readonly output: string[];
 
+    readonly code?: string;
+
+    readonly errno?: number;
+
+    readonly syscall?: string;
+
+    readonly statusCode?: number;
+
     constructor(message: string, options: { output: string[], cause?: unknown }) {
         super(message, { cause: options.cause });
 
         this.name = 'ModemStreamError';
         this.output = options.output;
+
+        const { cause } = options;
+
+        if (!isObject(cause)) {
+            return;
+        }
+
+        if (hasOwnProperty(cause, 'code') && typeof cause.code === 'string') {
+            this.code = cause.code;
+        }
+
+        if (hasOwnProperty(cause, 'errno') && typeof cause.errno === 'number') {
+            this.errno = cause.errno;
+        }
+
+        if (hasOwnProperty(cause, 'syscall') && typeof cause.syscall === 'string') {
+            this.syscall = cause.syscall;
+        }
+
+        if (hasOwnProperty(cause, 'statusCode') && typeof cause.statusCode === 'number') {
+            this.statusCode = cause.statusCode;
+        }
     }
 }
 
