@@ -7,5 +7,6 @@
 
 export * from './chunk-status';
 export * from './chunk-stream';
+export * from './output';
 export * from './response-error';
 export * from './types';
