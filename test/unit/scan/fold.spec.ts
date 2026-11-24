@@ -159,9 +159,9 @@ describe('foldScanTree', () => {
         const root: ScanNode = {
             name: 'r',
             children: [{
-                name: 'image', 
-                meta: { type: MetaType.IMAGE }, 
-                children: [], 
+                name: 'image',
+                meta: { type: MetaType.IMAGE },
+                children: [],
             }],
         };
 
@@ -207,5 +207,25 @@ describe('foldScanTree', () => {
         result.images[0].attributes!.name = 'changed';
 
         expect(result.groups[0].attributes).toEqual({ name: 'G' });
+    });
+
+    it('keeps empty own attributes', () => {
+        const root: ScanNode = {
+            name: 'r',
+            children: [{
+                name: 'image',
+                meta: { type: MetaType.IMAGE, attributes: {} },
+                children: [],
+            }],
+        };
+
+        expect(foldScanTree(root)).toStrictEqual({
+            images: [{
+                virtualPath: 'image',
+                path: 'image',
+                attributes: {},
+            }],
+            groups: [],
+        });
     });
 });
