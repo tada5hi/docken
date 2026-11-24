@@ -105,6 +105,22 @@ This example contacts your Docker daemon and may download an image. `waitForMode
 
 Callbacks are dispatched by specificity; a chunk handled by an operation callback is not also sent to every generic callback. `buildProgress(current, total)` floors the percentage and does not clamp it or guard a zero total.
 
+### Failed streams
+
+A failed stream rejects with a `ModemStreamError` whose `output` holds every line of the stream output and whose `cause` is the underlying error. The original error is available as `error.cause`; its `code`, `errno`, `syscall` and `statusCode` (e.g. a socket reset) are mirrored onto the `ModemStreamError` when present.
+
+```typescript
+import { isModemStreamError, waitForStream } from 'docken';
+
+try {
+    await waitForStream(client, buildStream);
+} catch (error) {
+    if (isModemStreamError(error)) {
+        console.error(error.message, error.output);
+    }
+}
+```
+
 ## Filesystem catalog
 
 `scanDirectory(cwd)` returns `{ images, groups }`, sorted by case-insensitive filesystem path. Each item has `path`, optional `virtualPath` and optional `attributes`.
@@ -119,6 +135,8 @@ All names below are exported from `docken`. Types have no runtime value.
 |---|---|---|
 | `isClient` | function | Check for a dockerode client instance |
 | `waitForStream` | function | Await a client modem stream with progress callbacks |
+| `ModemStreamError` | class | Rejection of a failed stream with `output` lines and the cause's error code |
+| `isModemStreamError` | function | Check for a `ModemStreamError`, also across module copies |
 | `createClient` | function | Construct a dockerode client |
 | `Client` | type | Type contract for client |
 | `ClientOptions` | type | Type contract for client options |

@@ -9,6 +9,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { Client, Progress } from '../../src';
 import {
     createClient,
+    isModemStreamError,
     waitForStream,
 } from '../../src';
 import type { Quantity } from '../../src/types';
@@ -65,5 +66,28 @@ describe('daemon', () => {
         });
 
         expect(steps.length).toEqual(4);
+    });
+
+    it('should reject a failing build with its output', async () => {
+        const image = await client.buildImage({
+            src: ['.'],
+            context: 'test/data/daemon-failing/',
+        }, {
+            t: 'tada5hi/test-failing',
+        });
+
+        let error : unknown;
+        try {
+            await waitForStream(client, image, { onBuilding: () => {} });
+        } catch (e) {
+            error = e;
+        }
+
+        expect(isModemStreamError(error)).toBe(true);
+        if (!isModemStreamError(error)) {
+            return;
+        }
+
+        expect(error.output.some((line) => /^Step 2\/2 : COPY does-not-exist\.txt/.test(line))).toBe(true);
     });
 });

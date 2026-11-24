@@ -9,33 +9,38 @@ import type { Progress } from '../../helpers';
 import { buildProgress } from '../../helpers';
 import type { Modem } from '../types';
 import {
+    ModemStreamOutput,
     extractErrorFromModemResponse,
     isModemDownloadingStatusChunk,
     isModemExtractingStatusChunk,
+    isModemProgressLineEndStep,
     isModemProgressStream,
-
-    isModemProgressStreamEndStep,
     isModemPushingStatusChunk,
     isModemStatusChunk,
-    parseModemProgressStreamAsStepStart,
+    parseModemProgressLineAsStepStart,
 } from '../utils';
+import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
 
 export async function waitForModemStream(
-    modem: Modem,
+    modem: Pick<Modem, 'followProgress'>,
     stream: NodeJS.ReadableStream,
     options: ModemStreamWaitOptions = {},
 ) {
     let step : Progress | undefined;
+    const output = new ModemStreamOutput();
 
     return new Promise<unknown>((resolve, reject) => {
         modem.followProgress(
             stream,
-            (error, output) => {
-                error = error || extractErrorFromModemResponse(output);
+            (error, response) => {
+                const failure = error || extractErrorFromModemResponse(response);
 
-                if (error) {
-                    reject(error);
+                if (failure) {
+                    reject(new ModemStreamError(failure.message, {
+                        output: output.lines(),
+                        cause: failure,
+                    }));
 
                     return;
                 }
@@ -44,9 +49,40 @@ export async function waitForModemStream(
                     options.onFinished();
                 }
 
-                resolve(output);
+                resolve(response);
             },
             (res) => {
+                // a chunk is withheld from onStreamChunk when every line it completed was a building event
+                let consumed = false;
+
+                if (isModemProgressStream(res)) {
+                    const lines = output.push(res.stream);
+
+                    if (options.onBuilding) {
+                        let events = 0;
+
+                        for (const line of lines) {
+                            if (step && isModemProgressLineEndStep(line)) {
+                                options.onBuilding(buildProgress(step.current + 1, step.total));
+                                step = undefined;
+                                events++;
+
+                                continue;
+                            }
+
+                            const temp = parseModemProgressLineAsStepStart(line);
+
+                            if (temp) {
+                                step = temp;
+                                options.onBuilding(step);
+                                events++;
+                            }
+                        }
+
+                        consumed = events > 0 && events === lines.length;
+                    }
+                }
+
                 if (isModemStatusChunk(res)) {
                     if (
                         options.onDownloading &&
@@ -86,23 +122,8 @@ export async function waitForModemStream(
                 }
 
                 if (isModemProgressStream(res)) {
-                    if (options.onBuilding) {
-                        if (step && isModemProgressStreamEndStep(res)) {
-                            options.onBuilding(buildProgress(step.current + 1, step.total));
-
-                            step = undefined;
-
-                            return;
-                        }
-
-                        const temp = parseModemProgressStreamAsStepStart(res);
-
-                        if (temp) {
-                            step = temp;
-                            options.onBuilding(step);
-
-                            return;
-                        }
+                    if (consumed) {
+                        return;
                     }
 
                     if (options.onStreamChunk) {

@@ -15,7 +15,16 @@ export function isModemProgressStream(input: unknown) : input is ModemStreamChun
 }
 
 export function parseModemProgressStreamAsStepStart(input: ModemStreamChunk) : Progress | undefined {
-    const matches = input.stream.match(/^Step\s([0-9])\/([0-9])\s:.*/s);
+    return parseModemProgressLineAsStepStart(input.stream);
+}
+
+export function isModemProgressStreamEndStep(input: ModemStreamChunk) : boolean {
+    return input.stream.endsWith('\n') &&
+        isModemProgressLineEndStep(input.stream.slice(0, -1));
+}
+
+export function parseModemProgressLineAsStepStart(line: string) : Progress | undefined {
+    const matches = line.match(/^Step\s([0-9]+)\/([0-9]+)\s:/);
 
     if (!matches) {
         return undefined;
@@ -27,8 +36,8 @@ export function parseModemProgressStreamAsStepStart(input: ModemStreamChunk) : P
     return buildProgress((current * 2) - 1, total * 2);
 }
 
-export function isModemProgressStreamEndStep(input: ModemStreamChunk) : boolean {
-    return !!input.stream.match(/^ ---> [a-z0-9]+\n$/);
+export function isModemProgressLineEndStep(line: string) : boolean {
+    return /^ ---> [a-z0-9]+$/.test(line);
 }
 
 // Retain types imported from the existing declaration path.
