@@ -6,35 +6,59 @@
  */
 
 import type { Progress } from '../../helpers';
-import type { ObjectLiteral, Quantity } from '../../types';
+import type { Quantity } from '../../types';
+import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
 
-export type ModemStreamStatusEvent = {
+/**
+ * A build step started or ended in the text of a stream chunk.
+ */
+export type ModemStreamBuildingEvent = {
+    kind: 'building',
+    progress: Progress,
+};
+
+export type ModemStreamDownloadingEvent = {
     kind: 'downloading',
-    progress: Progress
-} | {
-    kind: 'pushing',
-    progress: Progress
-} | {
-    kind: 'extracting',
-    quantity: Quantity
-} | {
-    kind: 'other'
+    progress: Progress,
+    chunk: ModemStatusChunk,
 };
 
-export type ModemStreamEvent = {
-    chunk: ObjectLiteral,
-    /**
-     * Set when the chunk is a status chunk.
-     */
-    status?: ModemStreamStatusEvent,
-    /**
-     * Set when the chunk is a progress stream chunk.
-     */
-    stream?: {
-        building: Progress[],
-        /**
-         * building.length > 0 and every line the chunk completed was a building event.
-         */
-        buildOnly: boolean,
-    },
+export type ModemStreamPushingEvent = {
+    kind: 'pushing',
+    progress: Progress,
+    chunk: ModemStatusChunk,
 };
+
+export type ModemStreamExtractingEvent = {
+    kind: 'extracting',
+    quantity: Quantity,
+    chunk: ModemStatusChunk,
+};
+
+/**
+ * A status chunk without a more specific kind.
+ */
+export type ModemStreamStatusEvent = {
+    kind: 'status',
+    chunk: ModemStatusChunk,
+};
+
+/**
+ * The text of a stream chunk.
+ */
+export type ModemStreamOutputEvent = {
+    kind: 'output',
+    chunk: ModemStreamChunk,
+    /**
+     * Every line the chunk completed was a build step, so the chunk
+     * carries nothing beyond its building events.
+     */
+    onlyBuildSteps: boolean,
+};
+
+export type ModemStreamEvent = ModemStreamBuildingEvent |
+    ModemStreamDownloadingEvent |
+    ModemStreamPushingEvent |
+    ModemStreamExtractingEvent |
+    ModemStreamStatusEvent |
+    ModemStreamOutputEvent;

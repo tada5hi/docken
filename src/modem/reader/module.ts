@@ -19,59 +19,82 @@ import {
     isModemStatusChunk,
     parseModemProgressLineAsStepStart,
 } from '../utils';
-import type { ModemStreamEvent, ModemStreamStatusEvent } from './types';
+import type { ModemStreamEvent } from './types';
 
 export class ModemStreamReader {
     protected output = new ModemStreamOutput();
 
     protected step : Progress | undefined;
 
-    push(chunk: ObjectLiteral) : ModemStreamEvent {
-        const event : ModemStreamEvent = { chunk };
+    /**
+     * Classify a chunk, whatever callbacks a caller registered.
+     * Events come in this order: building events, the status event, the output event.
+     * An unrecognized chunk gives no event.
+     */
+    push(chunk: ObjectLiteral) : ModemStreamEvent[] {
+        const events : ModemStreamEvent[] = [];
+        let output : ModemStreamEvent | undefined;
 
         if (isModemProgressStream(chunk)) {
             // eslint-disable-next-line unicorn/no-return-array-push -- ModemStreamOutput.push returns the completed lines.
             const lines = this.output.push(chunk.stream);
-            const building : Progress[] = [];
+            let steps = 0;
 
             for (const line of lines) {
-                if (this.step && isModemProgressLineEndStep(line)) {
-                    building.push(buildProgress(this.step.current + 1, this.step.total));
-                    this.step = undefined;
+                const progress = this.readBuildStep(line);
 
-                    continue;
-                }
-
-                const temp = parseModemProgressLineAsStepStart(line);
-
-                if (temp) {
-                    this.step = temp;
-                    building.push(temp);
+                if (progress) {
+                    events.push({ kind: 'building', progress });
+                    steps++;
                 }
             }
 
-            event.stream = {
-                building,
-                buildOnly: building.length > 0 && building.length === lines.length,
+            output = {
+                kind: 'output',
+                chunk,
+                onlyBuildSteps: steps > 0 && steps === lines.length,
             };
         }
 
         if (isModemStatusChunk(chunk)) {
-            event.status = this.classifyStatus(chunk);
+            events.push(this.classifyStatus(chunk));
         }
 
-        return event;
+        if (output) {
+            events.push(output);
+        }
+
+        return events;
     }
 
     lines() : string[] {
         return this.output.lines();
     }
 
-    protected classifyStatus(chunk: ModemGenericStatusChunk) : ModemStreamStatusEvent {
+    protected readBuildStep(line: string) : Progress | undefined {
+        if (this.step && isModemProgressLineEndStep(line)) {
+            const progress = buildProgress(this.step.current + 1, this.step.total);
+
+            this.step = undefined;
+
+            return progress;
+        }
+
+        const start = parseModemProgressLineAsStepStart(line);
+
+        if (start) {
+            this.step = start;
+        }
+
+        return start;
+    }
+
+    protected classifyStatus(chunk: ModemGenericStatusChunk) : ModemStreamEvent {
         if (isModemDownloadingStatusChunk(chunk)) {
             return {
                 kind: 'downloading',
                 progress: buildProgress(chunk.progressDetail.current, chunk.progressDetail.total),
+                chunk,
             };
         }
 
@@ -79,6 +102,7 @@ export class ModemStreamReader {
             return {
                 kind: 'pushing',
                 progress: buildProgress(chunk.progressDetail.current, chunk.progressDetail.total),
+                chunk,
             };
         }
 
@@ -89,9 +113,10 @@ export class ModemStreamReader {
                     value: chunk.progressDetail.current,
                     unit: chunk.progressDetail.units,
                 },
+                chunk,
             };
         }
 
-        return { kind: 'other' };
+        return { kind: 'status', chunk };
     }
 }

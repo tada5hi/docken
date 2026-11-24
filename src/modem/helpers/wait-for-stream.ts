@@ -7,9 +7,80 @@
 
 import type { Modem } from '../types';
 import { extractErrorFromModemResponse } from '../utils';
+import type { ModemStreamEvent } from '../reader';
 import { ModemStreamReader } from '../reader';
 import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
+
+/**
+ * Call the callback for one event.
+ * Returns true when the event handled its chunk, so no later event of
+ * the chunk and no onChunk fallback runs.
+ */
+function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamWaitOptions) : boolean {
+    switch (event.kind) {
+        case 'building': {
+            if (options.onBuilding) {
+                options.onBuilding(event.progress);
+            }
+
+            return false;
+        }
+        case 'downloading': {
+            if (options.onDownloading) {
+                options.onDownloading(event.progress);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'pushing': {
+            if (options.onPushing) {
+                options.onPushing(event.progress);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'extracting': {
+            if (options.onExtracting) {
+                options.onExtracting(event.quantity);
+
+                return true;
+            }
+
+            break;
+        }
+        case 'status': {
+            break;
+        }
+        case 'output': {
+            // the chunk was delivered as building events already
+            if (options.onBuilding && event.onlyBuildSteps) {
+                return true;
+            }
+
+            if (options.onStreamChunk) {
+                options.onStreamChunk(event.chunk);
+
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    // a status chunk without a matching specific callback
+    if (options.onStatusChunk) {
+        options.onStatusChunk(event.chunk);
+
+        return true;
+    }
+
+    return false;
+}
 
 export async function waitForModemStream(
     modem: Pick<Modem, 'followProgress'>,
@@ -40,48 +111,8 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
-                const event = reader.push(res);
-
-                if (event.stream && options.onBuilding) {
-                    for (const progress of event.stream.building) {
-                        options.onBuilding(progress);
-                    }
-                }
-
-                if (event.status) {
-                    if (options.onDownloading && event.status.kind === 'downloading') {
-                        options.onDownloading(event.status.progress);
-
-                        return;
-                    }
-
-                    if (options.onPushing && event.status.kind === 'pushing') {
-                        options.onPushing(event.status.progress);
-
-                        return;
-                    }
-
-                    if (options.onExtracting && event.status.kind === 'extracting') {
-                        options.onExtracting(event.status.quantity);
-
-                        return;
-                    }
-
-                    if (options.onStatusChunk) {
-                        options.onStatusChunk(res);
-
-                        return;
-                    }
-                }
-
-                if (event.stream) {
-                    if (options.onBuilding && event.stream.buildOnly) {
-                        return;
-                    }
-
-                    if (options.onStreamChunk) {
-                        options.onStreamChunk(res);
-
+                for (const event of reader.push(res)) {
+                    if (dispatchModemStreamEvent(event, options)) {
                         return;
                     }
                 }
