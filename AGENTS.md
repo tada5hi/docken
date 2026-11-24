@@ -4,7 +4,7 @@ A Docker client utility library for daemon interaction, scanning and streams.
 
 ## Quick Reference
 
-Development tooling requires Node `^24.15.0 || >=26.0.0`; use npm for dependency management. Published Node runtime: `>=22.0.0`. Build-tool requirements do not authorize changing the published runtime contract.
+Development tooling requires Node `^24.15.0 || >=26.0.0`; use npm for dependency management. Published Node runtime: `>=24.0.0`. Build-tool requirements do not authorize changing the published runtime contract.
 
 ```bash
 npm ci
