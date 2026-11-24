@@ -15,7 +15,7 @@ export function isModemProgressStream(input: unknown) : input is ModemStreamChun
 }
 
 export function parseModemProgressStreamAsStepStart(input: ModemStreamChunk) : Progress | undefined {
-    const matches = input.stream.match(/^Step\s([0-9])\/([0-9])\s:.*/s);
+    const matches = input.stream.match(/^Step\s([0-9]+)\/([0-9]+)\s:.*/s);
 
     if (!matches) {
         return undefined;
