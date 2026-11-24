@@ -71,10 +71,9 @@ export class ModemStreamOutput {
 
             if (line.length > 0) {
                 added.push(line);
+                this.completed.push(line);
             }
         }
-
-        this.completed.push(...added);
 
         if (this.limit !== undefined && this.completed.length > this.limit) {
             this.completed = this.completed.slice(this.completed.length - this.limit);
