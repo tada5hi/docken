@@ -149,15 +149,18 @@ describe('waitForModemStream dispatch', () => {
         expect(onStreamChunk.mock.calls[0][0]).toBe(chunk);
     });
 
-    it('falls back to onChunk without onStreamChunk', async () => {
+    it('falls back to onChunk without onStreamChunk, build steps included', async () => {
         const onBuilding = vi.fn();
         const onChunk = vi.fn();
         const first = { stream: 'hello\n' };
+        const second = { stream: 'Step 1/2 : FROM x\n' };
 
-        await run([first, { stream: 'Step 1/2 : FROM x\n' }], { onBuilding, onChunk });
+        await run([first, second], { onBuilding, onChunk });
 
-        expect(onChunk).toHaveBeenCalledTimes(1);
+        expect(onBuilding).toHaveBeenCalledWith(buildProgress(1, 4));
+        expect(onChunk).toHaveBeenCalledTimes(2);
         expect(onChunk.mock.calls[0][0]).toBe(first);
+        expect(onChunk.mock.calls[1][0]).toBe(second);
     });
 
     it('routes an unknown chunk to onChunk', async () => {

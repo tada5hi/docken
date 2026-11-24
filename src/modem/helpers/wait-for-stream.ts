@@ -57,11 +57,6 @@ function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamW
             break;
         }
         case 'output': {
-            // the chunk was delivered as building events already
-            if (options.onBuilding && event.onlyBuildSteps) {
-                return true;
-            }
-
             if (options.onStreamChunk) {
                 options.onStreamChunk(event.chunk);
 

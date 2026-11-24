@@ -99,7 +99,7 @@ This example contacts your Docker daemon and may download an image. `waitForMode
 | `onDownloading` / `onPushing` / `onBuilding` | `{ current, total, percent }` |
 | `onExtracting` | `{ value, unit }` |
 | `onStatusChunk` | An otherwise unhandled status chunk |
-| `onStreamChunk` | An otherwise unhandled textual stream chunk |
+| `onStreamChunk` | Every textual stream chunk, including build step lines also reported to `onBuilding` |
 | `onChunk` | A chunk not handled by a more specific callback |
 | `onFinished` | Successful completion notification, no arguments |
 

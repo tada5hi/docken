@@ -67,13 +67,11 @@ describe('modem/reader', () => {
             {
                 kind: 'output',
                 chunk: steps,
-                onlyBuildSteps: true,
             },
         ]);
         expect(reader.push(text)).toEqual([{
             kind: 'output',
             chunk: text,
-            onlyBuildSteps: false,
         }]);
     });
 
@@ -85,14 +83,12 @@ describe('modem/reader', () => {
         expect(reader.push(head)).toEqual([{
             kind: 'output',
             chunk: head,
-            onlyBuildSteps: false,
         }]);
         expect(reader.push(tail)).toEqual([
             { kind: 'building', progress: buildProgress(19, 22) },
             {
                 kind: 'output',
                 chunk: tail,
-                onlyBuildSteps: true,
             },
         ]);
     });
@@ -103,7 +99,6 @@ describe('modem/reader', () => {
         expect(new ModemStreamReader().push(chunk)).toEqual([{
             kind: 'output',
             chunk,
-            onlyBuildSteps: false,
         }]);
     });
 

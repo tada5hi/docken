@@ -38,22 +38,16 @@ export class ModemStreamReader {
         if (isModemProgressStream(chunk)) {
             // eslint-disable-next-line unicorn/no-return-array-push -- ModemStreamOutput.push returns the completed lines.
             const lines = this.output.push(chunk.stream);
-            let steps = 0;
 
             for (const line of lines) {
                 const progress = this.readBuildStep(line);
 
                 if (progress) {
                     events.push({ kind: 'building', progress });
-                    steps++;
                 }
             }
 
-            output = {
-                kind: 'output',
-                chunk,
-                onlyBuildSteps: steps > 0 && steps === lines.length,
-            };
+            output = { kind: 'output', chunk };
         }
 
         if (isModemStatusChunk(chunk)) {
