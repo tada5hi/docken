@@ -8,8 +8,8 @@
 import { hasOwnProperty, isObject } from 'smob';
 
 /**
- * Rejection of a modem stream, carrying every line of its textual output
- * (or the newest `outputLimit` lines). `output` is non-enumerable so loggers and serializers do not dump it.
+ * Rejection of a modem stream, carrying every line of its textual output.
+ * `output` is non-enumerable so loggers and serializers do not dump it.
  */
 export class ModemStreamError extends Error {
     declare readonly output: string[];

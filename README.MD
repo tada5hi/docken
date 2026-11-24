@@ -107,7 +107,7 @@ Callbacks are dispatched by specificity; a chunk handled by an operation callbac
 
 ### Failed streams
 
-A failed stream rejects with a `ModemStreamError` whose `output` holds every line of the stream output (pass `outputLimit` to keep only the newest N, `Infinity` for all) and whose `cause` is the underlying error. The original error is available as `error.cause`; its `code`, `errno`, `syscall` and `statusCode` (e.g. a socket reset) are mirrored onto the `ModemStreamError` when present.
+A failed stream rejects with a `ModemStreamError` whose `output` holds every line of the stream output and whose `cause` is the underlying error. The original error is available as `error.cause`; its `code`, `errno`, `syscall` and `statusCode` (e.g. a socket reset) are mirrored onto the `ModemStreamError` when present.
 
 ```typescript
 import { isModemStreamError, waitForStream } from 'docken';
@@ -134,7 +134,7 @@ All names below are exported from `docken`. Types have no runtime value.
 | Export | Kind | Purpose |
 |---|---|---|
 | `isClient` | function | Check for a dockerode client instance |
-| `waitForStream` | function | Await a client modem stream with progress callbacks (`outputLimit` caps the failure output) |
+| `waitForStream` | function | Await a client modem stream with progress callbacks |
 | `ModemStreamError` | class | Rejection of a failed stream with `output` lines and the cause's error code |
 | `isModemStreamError` | function | Check for a `ModemStreamError`, also across module copies |
 | `createClient` | function | Construct a dockerode client |
@@ -142,7 +142,7 @@ All names below are exported from `docken`. Types have no runtime value.
 | `ClientOptions` | type | Type contract for client options |
 | `buildProgress` | function | Build current/total/floored-percent progress |
 | `Progress` | type | Type contract for progress |
-| `waitForModemStream` | function | Await a modem stream directly with progress callbacks (`outputLimit` caps the failure output) |
+| `waitForModemStream` | function | Await a modem stream directly with progress callbacks |
 | `ModemStatusChunk` | type | Type contract for modem status chunk |
 | `ModemStreamChunk` | type | Type contract for modem stream chunk |
 | `ModemOnFinishedFn` | type | Type contract for modem on finished fn |

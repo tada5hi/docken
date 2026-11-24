@@ -35,22 +35,12 @@ function collapsePending(pending: string): string {
 
 /**
  * Assembled lines of the raw `stream` text of a docker build.
- * Every completed line is retained unless a limit is given.
+ * Every completed line is retained.
  */
 export class ModemStreamOutput {
-    protected limit: number | undefined;
-
     protected completed: string[] = [];
 
     protected pending = '';
-
-    /**
-     * @param limit optional cap: keep only the newest `limit` lines.
-     * Omit it, or pass `Infinity`, to keep every line.
-     */
-    constructor(limit?: number) {
-        this.limit = limit;
-    }
 
     /**
      * Append a chunk and return the cleaned, non-empty lines it completed, in order.
@@ -83,21 +73,14 @@ export class ModemStreamOutput {
             }
         }
 
-        if (this.limit !== undefined && this.completed.length > this.limit) {
-            this.completed = this.completed.slice(this.completed.length - this.limit);
-        }
-
         return added;
     }
 
     lines(): string[] {
         const pending = cleanLine(this.pending);
-        const all = pending.length > 0 ?
+
+        return pending.length > 0 ?
             [...this.completed, pending] :
             [...this.completed];
-
-        return this.limit !== undefined && all.length > this.limit ?
-            all.slice(all.length - this.limit) :
-            all;
     }
 }

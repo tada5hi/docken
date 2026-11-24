@@ -31,7 +31,4 @@ export type ModemStreamWaitOptions = {
     onDownloading?: ModemOnProgressFn,
     onExtracting?: ModemOnQuantityFn,
     onBuilding?: ModemOnProgressFn,
-
-    /** Optional cap on the output lines attached to a rejection: keeps only the newest N. Default: every line. */
-    outputLimit?: number,
 };

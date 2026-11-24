@@ -28,12 +28,6 @@ describe('modem > utils > output', () => {
         expect(output.lines()).toEqual(['100%']);
     });
 
-    it('keeps only the newest lines up to the limit', () => {
-        const output = new ModemStreamOutput(2);
-        output.push('1\n2\n3\n');
-        expect(output.lines()).toEqual(['2', '3']);
-    });
-
     it('drops empty and whitespace-only lines', () => {
         const output = new ModemStreamOutput();
         output.push('\n\n  \n');
@@ -109,13 +103,8 @@ describe('modem > utils > output', () => {
         expect(output.push('10%\r50%\r\u001b[1mdone\u001b[0m  \n')).toEqual(['done']);
     });
 
-    it('retains every line by default and with Infinity', () => {
+    it('retains every line', () => {
         const output = new ModemStreamOutput();
-        const all = new ModemStreamOutput(Infinity);
-        for (let i = 0; i < 1000; i++) {
-            all.push(`l${i}\n`);
-        }
-        expect(all.lines()).toHaveLength(1000);
         for (let i = 0; i < 1000; i++) {
             output.push(`l${i}\n`);
         }

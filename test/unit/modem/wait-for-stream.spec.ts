@@ -119,16 +119,6 @@ describe('waitForModemStream', () => {
         expect(error.statusCode).toBeUndefined();
     });
 
-    it('should honour outputLimit', async () => {
-        const modem = createFakeModem(chunks, new Error('fail'), []);
-        const error = await catchError(waitForModemStream(modem, stream, { outputLimit: 1 }));
-
-        if (!isModemStreamError(error)) {
-            throw new Error('not a ModemStreamError');
-        }
-
-        expect(error.output).toEqual(['boom']);
-    });
 
     it('should keep output out of enumerable properties', async () => {
         const modem = createFakeModem(chunks, new Error('fail'), []);

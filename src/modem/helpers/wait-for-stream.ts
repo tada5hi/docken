@@ -28,7 +28,7 @@ export async function waitForModemStream(
     options: ModemStreamWaitOptions = {},
 ) {
     let step : Progress | undefined;
-    const output = new ModemStreamOutput(options.outputLimit);
+    const output = new ModemStreamOutput();
 
     return new Promise<unknown>((resolve, reject) => {
         modem.followProgress(
