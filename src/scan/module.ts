@@ -15,8 +15,7 @@ import type {
 import type { ScanResultItem } from './result';
 import {
     MetaType,
-    detectDirectoryMeta,
-    readMetaFile,
+    readDirectoryMeta,
 } from './meta';
 
 type DirectoryScanContext = {
@@ -31,7 +30,7 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
     };
 
     const directoryName = path.basename(ctx.cwd);
-    const directoryMeta = await detectDirectoryMeta(ctx.cwd);
+    const directoryMeta = await readDirectoryMeta(ctx.cwd);
 
     if (directoryMeta) {
         let meta : ScanResultItem;
@@ -50,13 +49,10 @@ async function scanDirectoryInternal(ctx: DirectoryScanContext) {
             };
         }
 
-        if (directoryMeta.fileExists) {
+        if (directoryMeta.attributes !== undefined) {
             meta.attributes = {
                 ...(ctx.parent && ctx.parent.attributes ? ctx.parent.attributes : {}),
-                ...await readMetaFile(
-                    ctx.cwd,
-                    directoryMeta.type,
-                ),
+                ...directoryMeta.attributes,
             };
         } else if (ctx.parent && ctx.parent.attributes) {
             meta.attributes = { ...ctx.parent.attributes };
