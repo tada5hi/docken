@@ -68,6 +68,25 @@ describe('modem > utils > output', () => {
         expect(output.lines()).toEqual(['a']);
     });
 
+    it('joins a \\r\\r\\n split across chunks like a single chunk', () => {
+        const split = new ModemStreamOutput();
+        split.push('abc\r\r');
+        split.push('\n');
+
+        const whole = new ModemStreamOutput();
+        whole.push('abc\r\r\n');
+
+        expect(split.lines()).toEqual(['abc']);
+        expect(whole.lines()).toEqual(['abc']);
+    });
+
+    it('still collapses a redraw before a trailing \\r run', () => {
+        const output = new ModemStreamOutput();
+        output.push('10%\r50%\r\r');
+        output.push('\n');
+        expect(output.lines()).toEqual(['50%']);
+    });
+
     it('survives many progress rewrites without a newline', () => {
         const output = new ModemStreamOutput();
         for (let i = 0; i < 1000; i++) {

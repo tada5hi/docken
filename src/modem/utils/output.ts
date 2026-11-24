@@ -19,21 +19,12 @@ function cleanLine(raw: string): string {
 }
 
 // Only the text after the last \r survives cleanLine, so earlier text can go.
-// A final \r may be the first half of a \r\n split across chunks: keep from the previous one.
+// A trailing \r run may end the line (\r\n split across chunks): keep it and the text before it.
 function collapsePending(pending: string): string {
-    const last = pending.lastIndexOf('\r');
+    const body = pending.replace(/\r+$/, '');
+    const last = body.lastIndexOf('\r');
 
-    if (last === -1) {
-        return pending;
-    }
-
-    if (last < pending.length - 1) {
-        return pending.slice(last + 1);
-    }
-
-    const previous = pending.lastIndexOf('\r', last - 1);
-
-    return previous === -1 ? pending : pending.slice(previous + 1);
+    return (last === -1 ? body : body.slice(last + 1)) + pending.slice(body.length);
 }
 
 /**
