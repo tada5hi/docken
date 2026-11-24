@@ -8,10 +8,11 @@
 import { hasOwnProperty, isObject } from 'smob';
 
 /**
- * Rejection of a modem stream, carrying the last lines of its textual output.
+ * Rejection of a modem stream, carrying every line of its textual output
+ * (or the newest `outputLimit` lines). `output` is non-enumerable so loggers and serializers do not dump it.
  */
 export class ModemStreamError extends Error {
-    readonly output: string[];
+    declare readonly output: string[];
 
     readonly code?: string;
 
@@ -25,7 +26,12 @@ export class ModemStreamError extends Error {
         super(message, { cause: options.cause });
 
         this.name = 'ModemStreamError';
-        this.output = options.output;
+        Object.defineProperty(this, 'output', {
+            value: options.output,
+            enumerable: false,
+            writable: false,
+            configurable: true,
+        });
 
         const { cause } = options;
 

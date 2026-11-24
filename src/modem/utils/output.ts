@@ -5,8 +5,6 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-export const MODEM_STREAM_OUTPUT_LIMIT = 100;
-
 // eslint-disable-next-line no-control-regex
 const ANSI_ESCAPE_REGEX = /\u001b\[[0-9;?]*[A-Za-z]/g;
 
@@ -39,35 +37,50 @@ function collapsePending(pending: string): string {
 }
 
 /**
- * Bounded tail of the raw `stream` text of a docker build.
+ * Assembled lines of the raw `stream` text of a docker build.
+ * Every completed line is retained unless a limit is given.
  */
 export class ModemStreamOutput {
-    protected limit: number;
+    protected limit: number | undefined;
 
     protected completed: string[] = [];
 
     protected pending = '';
 
-    constructor(limit: number = MODEM_STREAM_OUTPUT_LIMIT) {
+    /**
+     * @param limit optional cap: keep only the newest `limit` lines.
+     * Omit it, or pass `Infinity`, to keep every line.
+     */
+    constructor(limit?: number) {
         this.limit = limit;
     }
 
-    push(chunk: string): void {
+    /**
+     * Append a chunk and return the cleaned, non-empty lines it completed, in order.
+     * These are exactly the lines added to the retained output.
+     */
+    push(chunk: string): string[] {
         const parts = (this.pending + chunk).split('\n');
 
         this.pending = collapsePending(parts.pop() ?? '');
+
+        const added: string[] = [];
 
         for (const part of parts) {
             const line = cleanLine(part);
 
             if (line.length > 0) {
-                this.completed.push(line);
+                added.push(line);
             }
         }
 
-        if (this.completed.length > this.limit) {
+        this.completed.push(...added);
+
+        if (this.limit !== undefined && this.completed.length > this.limit) {
             this.completed = this.completed.slice(this.completed.length - this.limit);
         }
+
+        return added;
     }
 
     lines(): string[] {
@@ -76,7 +89,7 @@ export class ModemStreamOutput {
             [...this.completed, pending] :
             [...this.completed];
 
-        return all.length > this.limit ?
+        return this.limit !== undefined && all.length > this.limit ?
             all.slice(all.length - this.limit) :
             all;
     }

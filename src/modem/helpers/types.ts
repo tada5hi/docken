@@ -32,6 +32,6 @@ export type ModemStreamWaitOptions = {
     onExtracting?: ModemOnQuantityFn,
     onBuilding?: ModemOnProgressFn,
 
-    /** Maximum number of trailing output lines attached to a rejection. */
+    /** Optional cap on the output lines attached to a rejection: keeps only the newest N. Default: every line. */
     outputLimit?: number,
 };

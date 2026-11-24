@@ -7,7 +7,12 @@ import { describe, expect, it } from 'vitest';
  */
 
 import { buildProgress } from '../../../src/helpers';
-import { parseModemProgressStreamAsStepStart } from '../../../src/modem/utils/chunk-stream';
+import {
+    isModemProgressLineEndStep,
+    isModemProgressStreamEndStep,
+    parseModemProgressLineAsStepStart,
+    parseModemProgressStreamAsStepStart,
+} from '../../../src/modem/utils/chunk-stream';
 
 describe('modem > utils > chunk-stream', () => {
     it('parses a single-digit build step', () => {
@@ -23,5 +28,21 @@ describe('modem > utils > chunk-stream', () => {
     it('returns undefined for a non-step line', () => {
         expect(parseModemProgressStreamAsStepStart({ stream: 'Removing intermediate container\n' }))
             .toBeUndefined();
+    });
+
+    it('keeps the chunk end-step detection', () => {
+        expect(isModemProgressStreamEndStep({ stream: ' ---> abc\n' })).toBe(true);
+        expect(isModemProgressStreamEndStep({ stream: ' ---> abc' })).toBe(false);
+    });
+
+    it('parses a step start line', () => {
+        expect(parseModemProgressLineAsStepStart('Step 10/11 : RUN x')).toEqual(buildProgress(19, 22));
+        expect(parseModemProgressLineAsStepStart('Removing intermediate container')).toBeUndefined();
+    });
+
+    it('detects an end-step line', () => {
+        expect(isModemProgressLineEndStep(' ---> abc')).toBe(true);
+        expect(isModemProgressLineEndStep(' ---> abc\n')).toBe(false);
+        expect(isModemProgressLineEndStep('boom')).toBe(false);
     });
 });

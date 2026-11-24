@@ -77,4 +77,29 @@ describe('modem > utils > output', () => {
         output.push('done\n');
         expect(output.lines()).toEqual(['done']);
     });
+
+    it('returns the lines a push completed', () => {
+        const output = new ModemStreamOutput();
+        expect(output.push('a\nb')).toEqual(['a']);
+        expect(output.push('c\n')).toEqual(['bc']);
+        expect(output.push('\n')).toEqual([]);
+    });
+
+    it('cleans returned lines', () => {
+        const output = new ModemStreamOutput();
+        expect(output.push('10%\r50%\r\u001b[1mdone\u001b[0m  \n')).toEqual(['done']);
+    });
+
+    it('retains every line by default and with Infinity', () => {
+        const output = new ModemStreamOutput();
+        const all = new ModemStreamOutput(Infinity);
+        for (let i = 0; i < 1000; i++) {
+            all.push(`l${i}\n`);
+        }
+        expect(all.lines()).toHaveLength(1000);
+        for (let i = 0; i < 1000; i++) {
+            output.push(`l${i}\n`);
+        }
+        expect(output.lines()).toHaveLength(1000);
+    });
 });

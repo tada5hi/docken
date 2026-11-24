@@ -13,11 +13,11 @@ import {
     extractErrorFromModemResponse,
     isModemDownloadingStatusChunk,
     isModemExtractingStatusChunk,
+    isModemProgressLineEndStep,
     isModemProgressStream,
-    isModemProgressStreamEndStep,
     isModemPushingStatusChunk,
     isModemStatusChunk,
-    parseModemProgressStreamAsStepStart,
+    parseModemProgressLineAsStepStart,
 } from '../utils';
 import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
@@ -52,8 +52,35 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
+                // a chunk is withheld from onStreamChunk when every line it completed was a building event
+                let consumed = false;
+
                 if (isModemProgressStream(res)) {
-                    output.push(res.stream);
+                    const lines = output.push(res.stream);
+
+                    if (options.onBuilding) {
+                        let events = 0;
+
+                        for (const line of lines) {
+                            if (step && isModemProgressLineEndStep(line)) {
+                                options.onBuilding(buildProgress(step.current + 1, step.total));
+                                step = undefined;
+                                events++;
+
+                                continue;
+                            }
+
+                            const temp = parseModemProgressLineAsStepStart(line);
+
+                            if (temp) {
+                                step = temp;
+                                options.onBuilding(step);
+                                events++;
+                            }
+                        }
+
+                        consumed = events > 0 && events === lines.length;
+                    }
                 }
 
                 if (isModemStatusChunk(res)) {
@@ -95,23 +122,8 @@ export async function waitForModemStream(
                 }
 
                 if (isModemProgressStream(res)) {
-                    if (options.onBuilding) {
-                        if (step && isModemProgressStreamEndStep(res)) {
-                            options.onBuilding(buildProgress(step.current + 1, step.total));
-
-                            step = undefined;
-
-                            return;
-                        }
-
-                        const temp = parseModemProgressStreamAsStepStart(res);
-
-                        if (temp) {
-                            step = temp;
-                            options.onBuilding(step);
-
-                            return;
-                        }
+                    if (consumed) {
+                        return;
                     }
 
                     if (options.onStreamChunk) {

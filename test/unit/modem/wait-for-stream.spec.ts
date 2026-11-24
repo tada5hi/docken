@@ -8,6 +8,8 @@
 import { Readable } from 'node:stream';
 import { describe, expect, it } from 'vitest';
 import type { Modem } from '../../../src/modem';
+import { buildProgress } from '../../../src/helpers';
+import type { Progress } from '../../../src/helpers';
 import { isModemStreamError, waitForModemStream } from '../../../src/modem';
 
 type FakeModem = Pick<Modem, 'followProgress'>;
@@ -128,6 +130,26 @@ describe('waitForModemStream', () => {
         expect(error.output).toEqual(['boom']);
     });
 
+    it('should keep output out of enumerable properties', async () => {
+        const modem = createFakeModem(chunks, new Error('fail'), []);
+        const error = await catchError(waitForModemStream(modem, stream));
+
+        if (!isModemStreamError(error)) {
+            throw new Error('not a ModemStreamError');
+        }
+
+        expect(error.output).toContain('boom');
+        expect(Object.keys(error)).not.toContain('output');
+        expect(JSON.stringify(error)).not.toContain('boom');
+        expect('output' in { ...error }).toBe(false);
+        expect(isModemStreamError(error)).toBe(true);
+
+        const copy = Object.create(Error.prototype);
+        Object.defineProperty(copy, 'name', { value: 'ModemStreamError' });
+        Object.defineProperty(copy, 'output', { value: ['a'], enumerable: false });
+        expect(isModemStreamError(copy)).toBe(true);
+    });
+
     it('should recognise an error of another module copy', () => {
         expect(isModemStreamError({ name: 'ModemStreamError', output: ['a'] })).toBe(true);
         expect(isModemStreamError({ name: 'ModemStreamError', output: [1] })).toBe(false);
@@ -152,5 +174,38 @@ describe('waitForModemStream', () => {
 
         expect(received).toEqual(['boom\n']);
         expect(finished).toBe(true);
+    });
+
+    it('should detect a step split across chunks', async () => {
+        const progress: Progress[] = [];
+        const forwarded: string[] = [];
+        const split = [{ stream: 'Step 10/' }, { stream: '11 : RUN x\n' }];
+        const modem = createFakeModem(split, null, split);
+
+        await waitForModemStream(modem, stream, {
+            onBuilding: (p) => {
+                progress.push(p); 
+            },
+            onStreamChunk: (chunk) => {
+                forwarded.push(chunk.stream); 
+            },
+        });
+
+        expect(progress).toEqual([buildProgress(19, 22)]);
+        expect(forwarded).toEqual(['Step 10/']);
+    });
+
+    it('should emit the +1 progress for an end-step line', async () => {
+        const seen: Progress[] = [];
+        const list = [{ stream: 'Step 1/2 : FROM x\n' }, { stream: ' ---> abc\n' }];
+        const modem = createFakeModem(list, null, list);
+
+        await waitForModemStream(modem, stream, {
+            onBuilding: (p) => {
+                seen.push(p); 
+            },
+        });
+
+        expect(seen).toEqual([buildProgress(1, 4), buildProgress(2, 4)]);
     });
 });
