@@ -62,7 +62,7 @@ export function isModemStreamError(input: unknown): input is ModemStreamError {
         return true;
     }
 
-    // a second module copy (CJS + ESM) fails instanceof
+    // a second module copy (another installed version) fails instanceof
     return isObject(input) &&
         hasOwnProperty(input, 'name') &&
         input.name === 'ModemStreamError' &&

@@ -45,7 +45,7 @@ waitForStream delegates to the Docker modem, dispatches chunks to specific progr
 npm install docken
 ```
 
-Requires Node `>=22.0.0`. ESM, CommonJS and TypeScript declarations are included. Import the documented package entrypoint rather than undeclared `dist/` paths.
+Requires Node `>=22.0.0`. The package is ESM-only and includes TypeScript declarations. Import the documented package entrypoint rather than undeclared `dist/` paths.
 
 ## Usage
 

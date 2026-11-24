@@ -5,6 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import { read } from 'locter';
 import { isObject } from 'smob';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,8 +14,6 @@ import { MetaFileName, MetaType } from './constants';
 import type { DirectoryMeta } from './types';
 
 async function loadJSONRecord(filePath: string) {
-    // locter is ESM-only, a dynamic import keeps the CJS build working.
-    const { read } = await import('locter');
     const content : unknown = await read(filePath);
 
     /* istanbul ignore next */

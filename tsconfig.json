@@ -8,13 +8,13 @@
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "noUncheckedIndexedAccess": false,
-        "outDir": "dist",
-        "rootDir": "src",
         "ignoreDeprecations": "6.0",
         "target": "ESNext"
     },
     "include": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "test/**/*.mts"
     ],
     "exclude": [
         "node_modules/**/*"
