@@ -9,33 +9,39 @@ import type { Progress } from '../../helpers';
 import { buildProgress } from '../../helpers';
 import type { Modem } from '../types';
 import {
+    ModemStreamOutput,
     extractErrorFromModemResponse,
     isModemDownloadingStatusChunk,
     isModemExtractingStatusChunk,
-    isModemProgressStream,
 
+    isModemProgressStream,
     isModemProgressStreamEndStep,
     isModemPushingStatusChunk,
     isModemStatusChunk,
     parseModemProgressStreamAsStepStart,
 } from '../utils';
+import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
 
 export async function waitForModemStream(
-    modem: Modem,
+    modem: Pick<Modem, 'followProgress'>,
     stream: NodeJS.ReadableStream,
     options: ModemStreamWaitOptions = {},
 ) {
     let step : Progress | undefined;
+    const output = new ModemStreamOutput(options.outputLimit);
 
     return new Promise<unknown>((resolve, reject) => {
         modem.followProgress(
             stream,
-            (error, output) => {
-                error = error || extractErrorFromModemResponse(output);
+            (error, response) => {
+                const failure = error || extractErrorFromModemResponse(response);
 
-                if (error) {
-                    reject(error);
+                if (failure) {
+                    reject(new ModemStreamError(failure.message, {
+                        output: output.lines(),
+                        cause: failure,
+                    }));
 
                     return;
                 }
@@ -44,9 +50,13 @@ export async function waitForModemStream(
                     options.onFinished();
                 }
 
-                resolve(output);
+                resolve(response);
             },
             (res) => {
+                if (isModemProgressStream(res)) {
+                    output.push(res.stream);
+                }
+
                 if (isModemStatusChunk(res)) {
                     if (
                         options.onDownloading &&

@@ -105,6 +105,22 @@ This example contacts your Docker daemon and may download an image. `waitForMode
 
 Callbacks are dispatched by specificity; a chunk handled by an operation callback is not also sent to every generic callback. `buildProgress(current, total)` floors the percentage and does not clamp it or guard a zero total.
 
+### Failed streams
+
+A failed stream rejects with a `ModemStreamError` whose `output` holds the last lines of the build output (`outputLimit` option, default 100) and whose `cause` is the underlying error.
+
+```typescript
+import { isModemStreamError, waitForStream } from 'docken';
+
+try {
+    await waitForStream(client, buildStream);
+} catch (error) {
+    if (isModemStreamError(error)) {
+        console.error(error.message, error.output);
+    }
+}
+```
+
 ## Filesystem catalog
 
 `scanDirectory(cwd)` returns `{ images, groups }`, sorted by case-insensitive filesystem path. Each item has `path`, optional `virtualPath` and optional `attributes`.
