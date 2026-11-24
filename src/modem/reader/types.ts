@@ -49,6 +49,10 @@ export type ModemStreamStatusEvent = {
 export type ModemStreamOutputEvent = {
     kind: 'output',
     chunk: ModemStreamChunk,
+    /**
+     * Every line the chunk completed was a build step.
+     */
+    onlyBuildSteps: boolean,
 };
 
 export type ModemStreamEvent = ModemStreamBuildingEvent |

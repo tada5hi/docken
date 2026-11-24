@@ -31,4 +31,13 @@ export type ModemStreamWaitOptions = {
     onDownloading?: ModemOnProgressFn,
     onExtracting?: ModemOnQuantityFn,
     onBuilding?: ModemOnProgressFn,
+
+    /**
+     * Pass a stream chunk on to onStreamChunk / onChunk even when every line
+     * it completed is a build step already reported to onBuilding.
+     * Set to false to receive such chunks only through onBuilding.
+     *
+     * @default true
+     */
+    streamBuildSteps?: boolean,
 };

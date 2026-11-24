@@ -6,11 +6,11 @@
  */
 
 import { Readable } from 'node:stream';
-import { 
-    describe, 
-    expect, 
-    it, 
-    vi, 
+import {
+    describe,
+    expect,
+    it,
+    vi,
 } from 'vitest';
 import { buildProgress } from '../../../src/helpers';
 import type { Modem } from '../../../src/modem';
@@ -54,9 +54,9 @@ describe('waitForModemStream dispatch', () => {
         const onChunk = vi.fn();
 
         await run([downloading], {
-            onDownloading, 
-            onStatusChunk, 
-            onChunk, 
+            onDownloading,
+            onStatusChunk,
+            onChunk,
         });
 
         expect(onDownloading.mock.calls).toEqual([[buildProgress(5, 10)]]);
@@ -117,8 +117,8 @@ describe('waitForModemStream dispatch', () => {
             [{ stream: 'Step 1/2 : FROM x\n' }, { stream: ' ---> abc\n' }],
             {
                 onStreamChunk: (chunk) => {
-                    received.push(chunk.stream); 
-                }, 
+                    received.push(chunk.stream);
+                },
             },
         );
 
@@ -149,6 +149,51 @@ describe('waitForModemStream dispatch', () => {
         expect(onStreamChunk.mock.calls[0][0]).toBe(chunk);
     });
 
+    it('passes a step-only chunk on by default', async () => {
+        const onBuilding = vi.fn();
+        const onStreamChunk = vi.fn();
+        const chunk = { stream: 'Step 1/2 : FROM x\n' };
+
+        await run([chunk], { onBuilding, onStreamChunk });
+
+        expect(onBuilding).toHaveBeenCalledWith(buildProgress(1, 4));
+        expect(onStreamChunk).toHaveBeenCalledTimes(1);
+        expect(onStreamChunk.mock.calls[0][0]).toBe(chunk);
+    });
+
+    it('withholds a step-only chunk with streamBuildSteps false', async () => {
+        const onBuilding = vi.fn();
+        const onStreamChunk = vi.fn();
+        const onChunk = vi.fn();
+        const steps = { stream: 'Step 1/2 : FROM x\n ---> abc\n' };
+        const mixed = { stream: 'Step 2/2 : RUN x\nhello\n' };
+
+        await run([steps, mixed], {
+            onBuilding,
+            onStreamChunk,
+            onChunk,
+            streamBuildSteps: false,
+        });
+
+        expect(onBuilding.mock.calls).toEqual([
+            [buildProgress(1, 4)],
+            [buildProgress(2, 4)],
+            [buildProgress(3, 4)],
+        ]);
+        expect(onStreamChunk).toHaveBeenCalledTimes(1);
+        expect(onStreamChunk.mock.calls[0][0]).toBe(mixed);
+        expect(onChunk).not.toHaveBeenCalled();
+    });
+
+    it('ignores streamBuildSteps false without onBuilding', async () => {
+        const onStreamChunk = vi.fn();
+        const chunk = { stream: 'Step 1/2 : FROM x\n' };
+
+        await run([chunk], { onStreamChunk, streamBuildSteps: false });
+
+        expect(onStreamChunk).toHaveBeenCalledTimes(1);
+    });
+
     it('falls back to onChunk without onStreamChunk, build steps included', async () => {
         const onBuilding = vi.fn();
         const onChunk = vi.fn();
@@ -170,9 +215,9 @@ describe('waitForModemStream dispatch', () => {
         const chunk = { aux: { ID: 'sha256:x' } };
 
         await run([chunk], {
-            onStatusChunk, 
-            onStreamChunk, 
-            onChunk, 
+            onStatusChunk,
+            onStreamChunk,
+            onChunk,
         });
 
         expect(onStatusChunk).not.toHaveBeenCalled();

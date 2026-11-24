@@ -99,9 +99,11 @@ This example contacts your Docker daemon and may download an image. `waitForMode
 | `onDownloading` / `onPushing` / `onBuilding` | `{ current, total, percent }` |
 | `onExtracting` | `{ value, unit }` |
 | `onStatusChunk` | An otherwise unhandled status chunk |
-| `onStreamChunk` | Every textual stream chunk, including build step lines also reported to `onBuilding` |
+| `onStreamChunk` | Every textual stream chunk, including build step lines also reported to `onBuilding` (see `streamBuildSteps`) |
 | `onChunk` | A chunk not handled by a more specific callback |
 | `onFinished` | Successful completion notification, no arguments |
+
+Set `streamBuildSteps: false` to keep chunks that contain only build step lines away from `onStreamChunk` and `onChunk` while `onBuilding` is registered; it defaults to `true`.
 
 Callbacks are dispatched by specificity; a chunk handled by an operation callback is not also sent to every generic callback. `buildProgress(current, total)` floors the percentage and does not clamp it or guard a zero total.
 
