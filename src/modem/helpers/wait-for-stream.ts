@@ -13,7 +13,6 @@ import {
     extractErrorFromModemResponse,
     isModemDownloadingStatusChunk,
     isModemExtractingStatusChunk,
-
     isModemProgressStream,
     isModemProgressStreamEndStep,
     isModemPushingStatusChunk,

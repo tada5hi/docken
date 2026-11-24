@@ -5,6 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import { hasOwnProperty, isObject } from 'smob';
+
 /**
  * Rejection of a modem stream, carrying the last lines of its textual output.
  */
@@ -25,9 +27,10 @@ export function isModemStreamError(input: unknown): input is ModemStreamError {
     }
 
     // a second module copy (CJS + ESM) fails instanceof
-    return typeof input === 'object' &&
-        input !== null &&
-        (input as { name?: unknown }).name === 'ModemStreamError' &&
-        Array.isArray((input as { output?: unknown }).output) &&
-        (input as { output: unknown[] }).output.every((line) => typeof line === 'string');
+    return isObject(input) &&
+        hasOwnProperty(input, 'name') &&
+        input.name === 'ModemStreamError' &&
+        hasOwnProperty(input, 'output') &&
+        Array.isArray(input.output) &&
+        input.output.every((line) => typeof line === 'string');
 }

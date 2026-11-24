@@ -107,7 +107,7 @@ Callbacks are dispatched by specificity; a chunk handled by an operation callbac
 
 ### Failed streams
 
-A failed stream rejects with a `ModemStreamError` whose `output` holds the last lines of the build output (`outputLimit` option, default 100) and whose `cause` is the underlying error.
+A failed stream rejects with a `ModemStreamError` whose `output` holds the last lines of the build output (`outputLimit` option, default 100) and whose `cause` is the underlying error. The original error (with its `code` / `statusCode`, e.g. a socket reset) is available as `error.cause`.
 
 ```typescript
 import { isModemStreamError, waitForStream } from 'docken';
