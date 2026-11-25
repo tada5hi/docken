@@ -158,7 +158,7 @@ await waitForStream(client, stream, {
 
 This example contacts your Docker daemon and may download an image. `waitForModemStream(modem, stream, options)` provides the same behavior with a modem directly.
 
-`readStream(client, stream, options)` (and `readModemStream(modem, stream, options)`) is the pull-based alternative: an async generator of typed events (`building`, `downloading`, `pushing`, `extracting`, `status`, `aux`, `output`, and the totals). It starts consuming the stream lazily on the first `next()`, and accepts `signal` and `timeout`.
+`readStream(client, stream, options)` (and `readModemStream(modem, stream, options)`) is the pull-based alternative: an async generator of typed events (`building`, `downloading`, `pushing`, `extracting`, `status`, `aux`, `output`, and the totals). The stream is consumed lazily: nothing is read, and `timeout` does not start, until the first `next()`. It accepts `signal` and `timeout`.
 
 ```typescript
 import { readStream } from 'docken';
