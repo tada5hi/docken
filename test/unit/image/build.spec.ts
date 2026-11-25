@@ -5,13 +5,24 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
-import { describe, expect, it } from 'vitest';
-import { buildImage } from '../../../src';
+import {
+    afterEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
+import { buildImage, isModemStreamError } from '../../../src';
 import { createFakeClient } from '../../helpers/fake-client';
 
 describe('buildImage', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it('packs a directory', async () => {
         const { client, calls } = createFakeClient([{ aux: { ID: 'sha256:abc' } }]);
 
@@ -65,5 +76,63 @@ describe('buildImage', () => {
 
         await expect(buildImage(client, { context: tar })).rejects.toThrow('boom');
         expect(tar.destroyed).toBe(false);
+    });
+
+    it('does not prepare the context for an already aborted signal', async () => {
+        const { client, calls } = createFakeClient([]);
+        const readFile = vi.spyOn(fs.promises, 'readFile');
+        const readdir = vi.spyOn(fs.promises, 'readdir');
+
+        const error = await buildImage(
+            client,
+            { context: path.join(__dirname, '../../data/build-context') },
+            { signal: AbortSignal.abort() },
+        ).catch((e) => e);
+
+        expect(isModemStreamError(error) && error.aborted).toBe(true);
+        expect(error.output).toEqual([]);
+        expect(readFile).not.toHaveBeenCalled();
+        expect(readdir).not.toHaveBeenCalled();
+        expect(calls.buildImage).not.toHaveBeenCalled();
+    });
+
+    it('rejects promptly on an abort while the context is prepared', async () => {
+        const { client, calls } = createFakeClient([]);
+        const controller = new AbortController();
+
+        // the .dockerignore read never settles
+        vi.spyOn(fs.promises, 'readFile').mockImplementation(() => new Promise(() => {}));
+
+        const promise = buildImage(
+            client,
+            { context: path.join(__dirname, '../../data/build-context') },
+            { signal: controller.signal },
+        ).catch((e) => e);
+
+        await new Promise((resolve) => {
+            setTimeout(resolve, 10);
+        });
+        controller.abort();
+
+        const error = await promise;
+
+        expect(isModemStreamError(error) && error.aborted).toBe(true);
+        expect(error.output).toEqual([]);
+        expect(calls.buildImage).not.toHaveBeenCalled();
+    });
+
+    it('rejects with an aborted error on a timeout while the context is prepared', async () => {
+        const { client } = createFakeClient([]);
+
+        vi.spyOn(fs.promises, 'readFile').mockImplementation(() => new Promise(() => {}));
+
+        const error = await buildImage(
+            client,
+            { context: path.join(__dirname, '../../data/build-context') },
+            { timeout: 20 },
+        ).catch((e) => e);
+
+        expect(isModemStreamError(error) && error.aborted).toBe(true);
+        expect(error.message).toBe('The stream timed out.');
     });
 });

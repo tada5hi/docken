@@ -122,4 +122,13 @@ describe('listBuildContextFiles', () => {
         expect(await listBuildContextFiles(dir)).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
         expect(await readTarNames(await packBuildContext(dir))).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
     });
+
+    it('stops the walk for an aborted signal', async () => {
+        fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch');
+
+        await expect(listBuildContextFiles(dir, undefined, AbortSignal.abort()))
+            .rejects.toMatchObject({ name: 'AbortError' });
+        await expect(packBuildContext(dir, undefined, AbortSignal.abort()))
+            .rejects.toMatchObject({ name: 'AbortError' });
+    });
 });

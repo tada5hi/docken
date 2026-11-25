@@ -207,7 +207,7 @@ When the daemon reports a failure, `error.detail` carries its `errorDetail` (for
 
 ### Cancellation
 
-Pass `signal` and/or `timeout` (milliseconds) to `waitForStream`, `readStream` and the image functions. The stream is destroyed and the call rejects with a `ModemStreamError` where `aborted` is `true`; the original reason (an abort reason or `TimeoutError`) is its `cause`. `timeout` is rounded up to whole milliseconds, capped at `2 ** 31 - 1`, and ignored when not positive or not finite.
+Pass `signal` and/or `timeout` (milliseconds) to `waitForStream`, `readStream` and the image functions. The stream is destroyed and the call rejects with a `ModemStreamError` where `aborted` is `true`; the original reason (an abort reason or `TimeoutError`) is its `cause`. For the image functions they cover the whole operation, including packing a `context` directory and the daemon request; an already aborted signal starts nothing. `timeout` is rounded up to whole milliseconds, capped at `2 ** 31 - 1`, and ignored when not positive or not finite.
 
 ```typescript
 try {

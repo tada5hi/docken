@@ -24,7 +24,10 @@ async function walk(
     relative: string,
     output: WalkOutput,
     skipDirectory: WalkFilter,
+    signal?: AbortSignal,
 ) : Promise<void> {
+    signal?.throwIfAborted();
+
     const entries = await fs.promises.readdir(path.join(root, relative), { withFileTypes: true });
 
     for (const entry of entries) {
@@ -35,7 +38,7 @@ async function walk(
             if (!skipDirectory(entryPath)) {
                 output.directories.push(entryPath);
 
-                await walk(root, entryPath, output, skipDirectory);
+                await walk(root, entryPath, output, skipDirectory, signal);
             }
         } else {
             output.files.push(entryPath);
@@ -100,17 +103,18 @@ async function exists(file: string) : Promise<boolean> {
  * filtered by <context>/.dockerignore: files, symlinks and directories
  * without any listed descendant (e.g. `empty`, without trailing slash).
  * The Dockerfile and .dockerignore are always kept, even if ignored,
- * as the daemon needs them.
+ * as the daemon needs them. An aborted signal stops the walk.
  */
 export async function listBuildContextFiles(
     context: string,
     dockerfile: string = 'Dockerfile',
+    signal?: AbortSignal,
 ) : Promise<string[]> {
     const patterns = await readPatterns(context);
     const output : WalkOutput = { files: [], directories: [] };
 
     if (typeof patterns === 'undefined') {
-        await walk(context, '', output, () => false);
+        await walk(context, '', output, () => false, signal);
 
         return addEmptyDirectories(output.files, output.directories).sort();
     }
@@ -121,7 +125,7 @@ export async function listBuildContextFiles(
     // so it is not walked at all.
     const prune = !hasExceptions(patterns);
 
-    await walk(context, '', output, (entryPath) => prune && matcher.ignores(entryPath));
+    await walk(context, '', output, (entryPath) => prune && matcher.ignores(entryPath), signal);
 
     const result = output.files.filter((file) => !matcher.ignores(file));
 
@@ -139,12 +143,17 @@ export async function listBuildContextFiles(
 
 /**
  * Pack the (filtered) build context directory into a tar stream.
+ * No stream is created once the signal aborted.
  */
 export async function packBuildContext(
     context: string,
     dockerfile?: string,
+    signal?: AbortSignal,
 ) : Promise<NodeJS.ReadableStream> {
-    const entries = await listBuildContextFiles(context, dockerfile);
+    const entries = await listBuildContextFiles(context, dockerfile, signal);
+
+    signal?.throwIfAborted();
+
     const allowed = new Set(entries.map((entry) => path.join(context, entry)));
 
     // a directory entry is read by tar-fs; never re-add excluded children.

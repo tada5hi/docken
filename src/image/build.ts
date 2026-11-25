@@ -29,7 +29,15 @@ export async function buildImage(
             client,
             async (abortSignal) => {
                 if (typeof context === 'string') {
-                    packed = await packBuildContext(context, buildOptions.dockerfile);
+                    const stream = await packBuildContext(context, buildOptions.dockerfile, abortSignal);
+
+                    // aborted meanwhile: the operation already rejected
+                    if (abortSignal?.aborted) {
+                        (stream as { destroy?: () => void }).destroy?.();
+                        abortSignal.throwIfAborted();
+                    }
+
+                    packed = stream;
                 }
 
                 return client.buildImage((packed ?? context) as any, {

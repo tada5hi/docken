@@ -5,6 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import { Readable } from 'node:stream';
 import { describe, expect, it, vi } from 'vitest';
 import { isModemStreamError, pullImage, pushImage } from '../../../src';
 import { createFakeClient } from '../../helpers/fake-client';
@@ -96,5 +97,43 @@ describe('pullImage / pushImage', () => {
         expect(error.message).toBe('The stream timed out.');
         expect(error.aborted).toBe(true);
         expect(error.output).toEqual([]);
+    });
+
+    it('does not start for an already aborted signal', async () => {
+        const { client, calls } = createFakeClient([]);
+
+        const error = await catchError(pullImage(client, 'alpine:3', {}, { signal: AbortSignal.abort() }));
+
+        expect(isModemStreamError(error)).toBe(true);
+        expect(error.aborted).toBe(true);
+        expect(calls.pull).not.toHaveBeenCalled();
+    });
+
+    it('rejects on abort and destroys a stream that arrives late', async () => {
+        const { client, calls } = createFakeClient([]);
+        const controller = new AbortController();
+        const late = new Readable({ read() {} });
+        let resolveStream: (stream: Readable) => void = () => {};
+
+        // ignores its abort signal and resolves only when told
+        calls.pull.mockImplementation(() => new Promise((resolve) => {
+            resolveStream = resolve;
+        }));
+
+        const promise = catchError(pullImage(client, 'alpine:3', {}, { signal: controller.signal }));
+
+        controller.abort();
+
+        const error = await promise;
+
+        expect(isModemStreamError(error)).toBe(true);
+        expect(error.aborted).toBe(true);
+
+        resolveStream(late);
+        await new Promise((resolve) => {
+            setImmediate(resolve);
+        });
+
+        expect(late.destroyed).toBe(true);
     });
 });
