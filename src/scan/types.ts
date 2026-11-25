@@ -7,9 +7,12 @@
 
 import type { ScanResultItem } from './result';
 
-export type ScanResult = {
-    groups: ScanResultItem[],
-    images: ScanResultItem[]
+export type ScanResult<
+    TImage = Record<string, any>,
+    TGroup = Record<string, any>,
+> = {
+    groups: ScanResultItem<TGroup>[],
+    images: ScanResultItem<TImage>[]
 };
 
 export type ScanOptions<

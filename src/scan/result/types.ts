@@ -5,8 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-export type ScanResultItem = {
+export type ScanResultItem<T = Record<string, any>> = {
     path: string,
     virtualPath?: string,
-    attributes?: Record<string, any>
+    attributes?: T
 };

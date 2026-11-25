@@ -5,7 +5,9 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+export * from './error';
 export * from './meta';
 export * from './module';
 export * from './result';
 export * from './types';
+export * from './validate';
