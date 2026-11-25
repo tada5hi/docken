@@ -28,17 +28,18 @@ async function walk(
         return node;
     }
 
-    const entries = await fs.promises.opendir(directory, { encoding: 'utf-8' });
-    const children : Promise<ScanNode>[] = [];
-
+    // list first and hold no handle while children are walked;
     // symlinked directories are not followed, as isDirectory() is false for them
-    for await (const dirent of entries) {
-        if (!dirent.isDirectory() || ignore.includes(dirent.name)) {
-            continue;
-        }
+    const entries = await fs.promises.readdir(directory, { withFileTypes: true });
+    const directories = entries.filter((dirent) => dirent.isDirectory() && !ignore.includes(dirent.name));
 
-        children.push(walk(path.join(directory, dirent.name), ignore, maxDepth, depth + 1));
-    }
+    // every child promise gets its handler in the tick it starts
+    const children = directories.map((dirent) => walk(
+        path.join(directory, dirent.name),
+        ignore,
+        maxDepth,
+        depth + 1,
+    ));
 
     node.children = await Promise.all(children);
 
