@@ -8,8 +8,28 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { extract } from 'tar-stream';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { listBuildContextFiles } from '../../../src/image/context';
+import { listBuildContextFiles, packBuildContext } from '../../../src/image/context';
+
+async function readTarNames(stream: NodeJS.ReadableStream) : Promise<string[]> {
+    const names : string[] = [];
+    const extractor = extract();
+
+    extractor.on('entry', (header, entry, next) => {
+        names.push(header.name);
+        entry.on('end', next);
+        entry.resume();
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        extractor.on('finish', resolve);
+        extractor.on('error', reject);
+        stream.pipe(extractor);
+    });
+
+    return names.sort();
+}
 
 describe('listBuildContextFiles', () => {
     let dir: string;
@@ -78,5 +98,28 @@ describe('listBuildContextFiles', () => {
         } finally {
             fs.chmodSync(path.join(dir, 'data'), 0o755);
         }
+    });
+
+    it('lists empty directories (without trailing slash) and packs them', async () => {
+        fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch');
+        fs.mkdirSync(path.join(dir, 'empty'));
+        fs.mkdirSync(path.join(dir, 'a', 'b'), { recursive: true });
+        fs.mkdirSync(path.join(dir, 'c'));
+        fs.writeFileSync(path.join(dir, 'c', 'd.txt'), 'x');
+
+        expect(await listBuildContextFiles(dir)).toEqual(['Dockerfile', 'a/b', 'c/d.txt', 'empty']);
+        expect(await readTarNames(await packBuildContext(dir))).toEqual(['Dockerfile', 'a/b', 'c/d.txt', 'empty']);
+    });
+
+    it('lists a directory whose children are all excluded, without its children', async () => {
+        fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch');
+        fs.writeFileSync(path.join(dir, '.dockerignore'), 'cache/*\nskip/\n!keep.txt\n');
+        fs.mkdirSync(path.join(dir, 'cache'));
+        fs.writeFileSync(path.join(dir, 'cache', 'x.txt'), 'x');
+        fs.mkdirSync(path.join(dir, 'skip'));
+        fs.writeFileSync(path.join(dir, 'skip', 'y.txt'), 'y');
+
+        expect(await listBuildContextFiles(dir)).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
+        expect(await readTarNames(await packBuildContext(dir))).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
     });
 });

@@ -99,7 +99,7 @@ const { digest: pushed, size } = await pushImage(client, 'app:latest', { tag: 'l
 
 The resolved fields are `undefined` when the daemon does not report them.
 
-For `buildImage`, a `context` directory is packed into a tar and honours its `.dockerignore`. The Dockerfile (`dockerfile` option, default `Dockerfile`) and `.dockerignore` are always sent, even when the patterns ignore them. Empty directories are not packed and symlinks are not followed. A `context` stream is passed through untouched.
+For `buildImage`, a `context` directory is packed into a tar and honours its `.dockerignore`. The Dockerfile (`dockerfile` option, default `Dockerfile`) and `.dockerignore` are always sent, even when the patterns ignore them. Empty directories are packed (also those whose contents are all ignored), symlinks are not followed, and without `!` exceptions an excluded directory is not read at all. A `context` stream is passed through untouched.
 
 ### FS Scan
 

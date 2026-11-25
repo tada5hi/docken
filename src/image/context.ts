@@ -14,10 +14,15 @@ const DOCKERIGNORE = '.dockerignore';
 
 type WalkFilter = (entryPath: string) => boolean;
 
+type WalkOutput = {
+    files: string[],
+    directories: string[],
+};
+
 async function walk(
     root: string,
     relative: string,
-    output: string[],
+    output: WalkOutput,
     skipDirectory: WalkFilter,
 ) : Promise<void> {
     const entries = await fs.promises.readdir(path.join(root, relative), { withFileTypes: true });
@@ -28,10 +33,12 @@ async function walk(
         // symlinks are listed as entries and never followed.
         if (entry.isDirectory()) {
             if (!skipDirectory(entryPath)) {
+                output.directories.push(entryPath);
+
                 await walk(root, entryPath, output, skipDirectory);
             }
         } else {
-            output.push(entryPath);
+            output.files.push(entryPath);
         }
     }
 }
@@ -46,6 +53,32 @@ async function readPatterns(context: string) : Promise<string | undefined> {
 
         throw e;
     }
+}
+
+/**
+ * Add the directories without any listed descendant (e.g. empty ones),
+ * so the daemon still creates them.
+ */
+function addEmptyDirectories(entries: string[], directories: string[]) : string[] {
+    const parents = new Set<string>();
+
+    // a listed nested directory makes its ancestors non-empty
+    for (const entry of [...entries, ...directories]) {
+        let index = entry.lastIndexOf('/');
+
+        while (index > 0) {
+            parents.add(entry.slice(0, index));
+            index = entry.lastIndexOf('/', index - 1);
+        }
+    }
+
+    for (const directory of directories) {
+        if (!parents.has(directory)) {
+            entries.push(directory);
+        }
+    }
+
+    return entries;
 }
 
 function hasExceptions(patterns: string) : boolean {
@@ -63,21 +96,23 @@ async function exists(file: string) : Promise<boolean> {
 }
 
 /**
- * List the files of a build context (relative POSIX paths, sorted),
- * filtered by <context>/.dockerignore. The Dockerfile and .dockerignore
- * are always kept, even if ignored, as the daemon needs them.
+ * List the entries of a build context (relative POSIX paths, sorted),
+ * filtered by <context>/.dockerignore: files, symlinks and directories
+ * without any listed descendant (e.g. `empty`, without trailing slash).
+ * The Dockerfile and .dockerignore are always kept, even if ignored,
+ * as the daemon needs them.
  */
 export async function listBuildContextFiles(
     context: string,
     dockerfile: string = 'Dockerfile',
 ) : Promise<string[]> {
     const patterns = await readPatterns(context);
-    const files : string[] = [];
+    const output : WalkOutput = { files: [], directories: [] };
 
     if (typeof patterns === 'undefined') {
-        await walk(context, '', files, () => false);
+        await walk(context, '', output, () => false);
 
-        return files.sort();
+        return addEmptyDirectories(output.files, output.directories).sort();
     }
 
     const matcher = ignore({ ignorecase: false }).add(patterns);
@@ -86,9 +121,9 @@ export async function listBuildContextFiles(
     // so it is not walked at all.
     const prune = !hasExceptions(patterns);
 
-    await walk(context, '', files, (entryPath) => prune && matcher.ignores(entryPath));
+    await walk(context, '', output, (entryPath) => prune && matcher.ignores(entryPath));
 
-    const result = files.filter((file) => !matcher.ignores(file));
+    const result = output.files.filter((file) => !matcher.ignores(file));
 
     for (const keep of [dockerfile, DOCKERIGNORE]) {
         if (!result.includes(keep) && await exists(path.join(context, keep))) {
@@ -96,7 +131,10 @@ export async function listBuildContextFiles(
         }
     }
 
-    return result.sort();
+    return addEmptyDirectories(
+        result,
+        output.directories.filter((directory) => !matcher.ignores(directory)),
+    ).sort();
 }
 
 /**
@@ -107,6 +145,11 @@ export async function packBuildContext(
     dockerfile?: string,
 ) : Promise<NodeJS.ReadableStream> {
     const entries = await listBuildContextFiles(context, dockerfile);
+    const allowed = new Set(entries.map((entry) => path.join(context, entry)));
 
-    return pack(context, { entries });
+    // a directory entry is read by tar-fs; never re-add excluded children.
+    return pack(context, {
+        entries,
+        ignore: (name) => !allowed.has(name),
+    });
 }
