@@ -1,0 +1,6 @@
+# comment
+secret.txt
+nested/
+!nested/keep.txt
+Dockerfile
+.dockerignore

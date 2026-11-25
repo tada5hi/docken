@@ -16,3 +16,10 @@ export type PushImageInput = {
     authconfig?: Docker.AuthConfig,
     tag?: string,
 };
+
+export type BuildImageInput = Docker.ImageBuildOptions & {
+    /**
+     * Directory (packed honouring .dockerignore) or ready tar stream.
+     */
+    context: string | NodeJS.ReadableStream,
+};

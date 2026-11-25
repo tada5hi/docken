@@ -59,6 +59,7 @@
         "@tada5hi/eslint-config": "^3.3.1",
         "@tada5hi/tsconfig": "^0.7.2",
         "@types/node": "^24.19.2",
+        "@types/tar-fs": "^2.0.4",
         "@vitest/coverage-v8": "^5.1.1",
         "cross-env": "^10.1.0",
         "eslint": "^10.15.0",
@@ -70,10 +71,12 @@
         "vitest": "^5.1.1"
     },
     "dependencies": {
+        "@balena/dockerignore": "^1.0.2",
         "@types/dockerode": "^4.0.2",
         "dockerode": "^5.0.1",
         "locter": "^4.3.0",
-        "smob": "^1.6.2"
+        "smob": "^1.6.2",
+        "tar-fs": "^2.1.6"
     },
     "devEngines": {
         "runtime": {
