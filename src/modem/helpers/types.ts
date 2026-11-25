@@ -51,4 +51,16 @@ export type ModemStreamWaitOptions = {
      * @default true
      */
     streamBuildSteps?: boolean,
+
+    /**
+     * Abort the wait: the stream is destroyed and the promise rejects
+     * with a ModemStreamError (aborted: true).
+     */
+    signal?: AbortSignal,
+
+    /**
+     * Abort the wait after this many milliseconds.
+     * Values <= 0 or non-finite are ignored.
+     */
+    timeout?: number,
 };

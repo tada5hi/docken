@@ -9,6 +9,7 @@ import type { Modem } from '../types';
 import { extractErrorFromModemResponse } from '../utils';
 import type { ModemStreamEvent } from '../reader';
 import { ModemStreamReader } from '../reader';
+import { createAbortSignal, createModemStreamAbortError } from './abort';
 import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
 
@@ -110,10 +111,45 @@ export async function waitForModemStream(
 ) {
     const reader = new ModemStreamReader();
 
+    const signal = createAbortSignal(options);
+
     return new Promise<unknown>((resolve, reject) => {
+        if (signal?.aborted) {
+            reject(createModemStreamAbortError(signal.reason, reader.lines()));
+
+            return;
+        }
+
+        let settled = false;
+
+        const onAbort = () => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+
+            const { destroy } = stream as { destroy?: unknown };
+
+            if (typeof destroy === 'function') {
+                destroy.call(stream);
+            }
+
+            reject(createModemStreamAbortError(signal?.reason, reader.lines()));
+        };
+
+        signal?.addEventListener('abort', onAbort, { once: true });
+
         modem.followProgress(
             stream,
             (error, response) => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                signal?.removeEventListener('abort', onAbort);
+
                 const failure = error || extractErrorFromModemResponse(response);
 
                 if (failure) {
@@ -132,19 +168,27 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
+                if (settled) {
+                    return;
+                }
+
                 let handled = false;
 
                 for (const event of reader.push(res)) {
+                    if (settled) {
+                        return;
+                    }
+
                     if (options.onEvent) {
                         options.onEvent(event);
                     }
 
-                    if (!handled) {
+                    if (!handled && !settled) {
                         handled = dispatchModemStreamEvent(event, options);
                     }
                 }
 
-                if (!handled && options.onChunk) {
+                if (!handled && !settled && options.onChunk) {
                     options.onChunk(res);
                 }
             },
