@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { listBuildContextFiles } from '../../../src';
+import { listBuildContextFiles } from '../../../src/image/context';
 
 describe('listBuildContextFiles', () => {
     let dir: string;

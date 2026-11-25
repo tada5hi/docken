@@ -8,11 +8,8 @@
 import type { Client } from '../client';
 import { waitForStream } from '../client';
 import type { ModemStreamEvent, ModemStreamWaitOptions } from '../modem';
-import {
-    createAbortSignal,
-    createModemStreamAbortError,
-    isModemStreamError,
-} from '../modem';
+import { isModemStreamError } from '../modem';
+import { createAbortSignal, createModemStreamAbortError } from '../modem/helpers/abort';
 
 /**
  * Start an image operation and wait for its stream.
