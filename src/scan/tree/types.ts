@@ -21,3 +21,15 @@ export type ScanNode = {
      */
     children: ScanNode[],
 };
+
+export type WalkOptions = {
+    /**
+     * Directory base names to skip (default: ['.git', 'node_modules']).
+     * The root is always walked.
+     */
+    ignore?: string[],
+    /**
+     * Maximum depth, the root is 0 (default: unlimited).
+     */
+    maxDepth?: number,
+};

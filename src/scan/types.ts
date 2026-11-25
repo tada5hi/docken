@@ -11,3 +11,28 @@ export type ScanResult = {
     groups: ScanResultItem[],
     images: ScanResultItem[]
 };
+
+export type ScanOptions<
+    TImage = Record<string, any>,
+    TGroup = Record<string, any>,
+> = {
+    /**
+     * Directory base names to skip (default: ['.git', 'node_modules']).
+     * Passing it replaces the default.
+     */
+    ignore?: string[],
+    /**
+     * Maximum depth, the root is 0 (default: unlimited).
+     */
+    maxDepth?: number,
+    validate?: {
+        image?: (
+            attributes: Record<string, any> | undefined,
+            item: ScanResultItem,
+        ) => TImage | Promise<TImage>,
+        group?: (
+            attributes: Record<string, any> | undefined,
+            item: ScanResultItem,
+        ) => TGroup | Promise<TGroup>,
+    },
+};

@@ -27,7 +27,7 @@ function foldNode(
                 virtualPath: parent.virtualPath ?
                     path.posix.join(parent.virtualPath, node.name) :
                     node.name,
-                path: path.join(parent.path, node.name),
+                path: path.posix.join(parent.path, node.name),
             } :
             {
                 virtualPath: node.name,
@@ -53,7 +53,7 @@ function foldNode(
         }
     } else if (!root) {
         context = parent ?
-            { ...parent, path: path.join(parent.path, node.name) } :
+            { ...parent, path: path.posix.join(parent.path, node.name) } :
             { path: node.name };
     }
 
