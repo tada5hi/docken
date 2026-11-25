@@ -10,6 +10,7 @@ import type { Client, Progress } from '../../src';
 import {
     createClient,
     isModemStreamError,
+    pullImage,
     waitForStream,
 } from '../../src';
 import type { Quantity } from '../../src/types';
@@ -38,6 +39,12 @@ describe('daemon', () => {
 
         expect(downloadingProgress.length).toBeGreaterThanOrEqual(0);
         expect(extractingProgress.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should pull image with pullImage and return the digest', async () => {
+        const result = await pullImage(client, 'hello-world:latest');
+
+        expect(result.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
     });
 
     it('should inspect image', async () => {
