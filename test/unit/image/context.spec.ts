@@ -8,9 +8,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { extract } from 'tar-stream';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { Readable } from 'node:stream';
+import { pack as packFs } from 'tar-fs';
+import { extract, pack } from 'tar-stream';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listBuildContextFiles, packBuildContext } from '../../../src/image/context';
+
+vi.mock('tar-fs', { spy: true });
 
 async function readTarNames(stream: NodeJS.ReadableStream) : Promise<string[]> {
     const names : string[] = [];
@@ -39,6 +43,7 @@ describe('listBuildContextFiles', () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
         fs.rmSync(dir, { recursive: true, force: true });
     });
 
@@ -121,6 +126,36 @@ describe('listBuildContextFiles', () => {
 
         expect(await listBuildContextFiles(dir)).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
         expect(await readTarNames(await packBuildContext(dir))).toEqual(['.dockerignore', 'Dockerfile', 'cache']);
+    });
+
+    it('returns a Node.js byte stream with the filtered archive', async () => {
+        const stream = await packBuildContext(path.join(__dirname, '../../data/build-context'));
+
+        expect(stream).toBeInstanceOf(Readable);
+        expect((stream as Readable).readableObjectMode).toBe(false);
+        expect(await readTarNames(stream)).toEqual(['.dockerignore', 'Dockerfile', 'keep.txt', 'nested/keep.txt']);
+    });
+
+    it('forwards archive errors to the Node.js stream', async () => {
+        const archive = pack();
+        vi.mocked(packFs).mockReturnValueOnce(archive);
+        const stream = await packBuildContext(dir) as Readable;
+        const consumed = stream.toArray();
+
+        archive.destroy(new Error('archive failed'));
+
+        await expect(consumed).rejects.toThrow('archive failed');
+    });
+
+    it('destroys the archive when the Node.js stream is cancelled', async () => {
+        const archive = pack();
+        vi.mocked(packFs).mockReturnValueOnce(archive);
+        const stream = await packBuildContext(dir) as Readable;
+
+        stream.destroy();
+        await new Promise<void>((resolve) => { stream.on('close', resolve); });
+
+        expect(archive.destroyed).toBe(true);
     });
 
     it('stops the walk for an aborted signal', async () => {
