@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.1](https://github.com/tada5hi/docken/compare/v3.0.0...v3.0.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* read image descriptors with locter's built-in JSON format ([ae7d6fb](https://github.com/tada5hi/docken/commit/ae7d6fbf9dc1b85e24d5498605c4a8840142da79)), closes [#115](https://github.com/tada5hi/docken/issues/115)
+* read push digests from the containerd image store ([#117](https://github.com/tada5hi/docken/issues/117)) ([d0ccda6](https://github.com/tada5hi/docken/commit/d0ccda61a5c050a13e177f0082e787439e813bd9))
+
 ## [3.0.0](https://github.com/tada5hi/docken/compare/v2.0.2...v3.0.0) (2026-11-25)
 
 
