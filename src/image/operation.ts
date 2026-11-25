@@ -37,12 +37,10 @@ export async function runImageOperation(
         await waitForStream(client, stream, {
             ...rest,
             signal,
-            onEvent: async (event) => {
+            onEvent: (event) => {
                 collect(event);
 
-                if (options?.onEvent) {
-                    await options.onEvent(event);
-                }
+                return options?.onEvent?.(event);
             },
         });
     } catch (e) {

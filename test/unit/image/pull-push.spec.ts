@@ -94,5 +94,7 @@ describe('pullImage / pushImage', () => {
 
         expect(isModemStreamError(error)).toBe(true);
         expect(error.message).toBe('The stream timed out.');
+        expect(error.aborted).toBe(true);
+        expect(error.output).toEqual([]);
     });
 });
