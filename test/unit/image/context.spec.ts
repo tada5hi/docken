@@ -45,6 +45,13 @@ describe('listBuildContextFiles', () => {
             .toEqual(['.dockerignore', 'a.txt', 'build.Dockerfile']);
     });
 
+    it('rejects when .dockerignore exists but cannot be read', async () => {
+        fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch');
+        fs.mkdirSync(path.join(dir, '.dockerignore'));
+
+        await expect(listBuildContextFiles(dir)).rejects.toMatchObject({ code: 'EISDIR' });
+    });
+
     it('does not follow symlinks and tolerates broken ones', async () => {
         const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'docken-out-'));
 

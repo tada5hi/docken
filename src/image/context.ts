@@ -55,7 +55,11 @@ export async function listBuildContextFiles(
     try {
         patterns = await fs.promises.readFile(path.join(context, DOCKERIGNORE), 'utf8');
     } catch (e) {
-        return files.sort();
+        if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+            return files.sort();
+        }
+
+        throw e;
     }
 
     const matcher = ignore({ ignorecase: false }).add(patterns);
