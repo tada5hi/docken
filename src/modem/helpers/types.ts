@@ -5,6 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import type { ModemStreamEvent } from '../reader';
 import type { Progress } from '../../helpers';
 import type { ObjectLiteral, Quantity } from '../../types';
 import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
@@ -21,6 +22,8 @@ export type ModemOnStatusChunkFn = (input: ModemStatusChunk) => void | Promise<v
 export type ModemOnProgressFn = (input: Progress) => void | Promise<void>;
 export type ModemOnQuantityFn = (quantity: Quantity) => void | Promise<void>;
 
+export type ModemOnEventFn = (event: ModemStreamEvent) => void | Promise<void>;
+
 export type ModemStreamWaitOptions = {
     onFinished?: ModemOnFinishedFn,
     onChunk?: ModemOnChunkFn,
@@ -31,6 +34,14 @@ export type ModemStreamWaitOptions = {
     onDownloading?: ModemOnProgressFn,
     onExtracting?: ModemOnQuantityFn,
     onBuilding?: ModemOnProgressFn,
+    onDownloadingTotal?: ModemOnProgressFn,
+    onPushingTotal?: ModemOnProgressFn,
+
+    /**
+     * Called for every stream event, before the callback specific to it,
+     * also for events after the one that handled the chunk.
+     */
+    onEvent?: ModemOnEventFn,
 
     /**
      * Pass a stream chunk on to onStreamChunk / onChunk even when every line

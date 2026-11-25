@@ -7,6 +7,7 @@
 
 import type { Progress } from '../../helpers';
 import { buildProgress } from '../../helpers';
+import { isObject } from 'smob';
 import type { ObjectLiteral } from '../../types';
 import type { ModemGenericStatusChunk } from '../utils';
 import {
@@ -26,9 +27,13 @@ export class ModemStreamReader {
 
     protected step : Progress | undefined;
 
+    protected downloads = new Map<string, { current: number, total: number }>();
+
+    protected pushes = new Map<string, { current: number, total: number }>();
+
     /**
      * Classify a chunk, whatever callbacks a caller registered.
-     * Events come in this order: building events, the status event, the output event.
+     * Events come in this order: building events, the total event, the status or aux event, the output event.
      * An unrecognized chunk gives no event.
      */
     push(chunk: ObjectLiteral) : ModemStreamEvent[] {
@@ -57,7 +62,21 @@ export class ModemStreamReader {
         }
 
         if (isModemStatusChunk(chunk)) {
+            const total = this.trackLayers(chunk);
+
+            if (total) {
+                events.push(total);
+            }
+
             events.push(this.classifyStatus(chunk));
+        }
+
+        if (isObject(chunk.aux)) {
+            events.push({
+                kind: 'aux', 
+                aux: chunk.aux, 
+                chunk, 
+            });
         }
 
         if (output) {
@@ -69,6 +88,66 @@ export class ModemStreamReader {
 
     lines() : string[] {
         return this.output.lines();
+    }
+
+    protected trackLayers(chunk: ModemGenericStatusChunk) : ModemStreamEvent | undefined {
+        let layers : Map<string, { current: number, total: number }>;
+        let kind : 'downloadingTotal' | 'pushingTotal';
+        let complete : boolean;
+
+        if (chunk.status === 'Downloading' || chunk.status === 'Download complete') {
+            layers = this.downloads;
+            kind = 'downloadingTotal';
+            complete = chunk.status !== 'Downloading';
+        } else if (
+            chunk.status === 'Pushing' ||
+            chunk.status === 'Pushed' ||
+            chunk.status === 'Layer already exists'
+        ) {
+            layers = this.pushes;
+            kind = 'pushingTotal';
+            complete = chunk.status !== 'Pushing';
+        } else {
+            return undefined;
+        }
+
+        if (typeof chunk.id !== 'string') {
+            return undefined;
+        }
+
+        const previous = layers.get(chunk.id);
+
+        if (complete) {
+            if (!previous || previous.current === previous.total) {
+                return undefined;
+            }
+
+            layers.set(chunk.id, { current: previous.total, total: previous.total });
+        } else {
+            const { current, total } = chunk.progressDetail || {};
+
+            if (
+                typeof current !== 'number' ||
+                typeof total !== 'number' ||
+                !Number.isFinite(current) ||
+                !Number.isFinite(total) ||
+                total <= 0
+            ) {
+                return undefined;
+            }
+
+            layers.set(chunk.id, { current, total });
+        }
+
+        let current = 0;
+        let total = 0;
+
+        for (const layer of layers.values()) {
+            current += layer.current;
+            total += layer.total;
+        }
+
+        return { kind, progress: buildProgress(current, total) };
     }
 
     protected readBuildStep(line: string) : Progress | undefined {

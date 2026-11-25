@@ -26,6 +26,23 @@ function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamW
 
             return false;
         }
+        case 'downloadingTotal': {
+            if (options.onDownloadingTotal) {
+                options.onDownloadingTotal(event.progress);
+            }
+
+            return false;
+        }
+        case 'pushingTotal': {
+            if (options.onPushingTotal) {
+                options.onPushingTotal(event.progress);
+            }
+
+            return false;
+        }
+        case 'aux': {
+            return false;
+        }
         case 'downloading': {
             if (options.onDownloading) {
                 options.onDownloading(event.progress);
@@ -115,13 +132,19 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
+                let handled = false;
+
                 for (const event of reader.push(res)) {
-                    if (dispatchModemStreamEvent(event, options)) {
-                        return;
+                    if (options.onEvent) {
+                        options.onEvent(event);
+                    }
+
+                    if (!handled) {
+                        handled = dispatchModemStreamEvent(event, options);
                     }
                 }
 
-                if (options.onChunk) {
+                if (!handled && options.onChunk) {
                     options.onChunk(res);
                 }
             },
