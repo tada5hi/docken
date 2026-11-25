@@ -52,6 +52,38 @@ describe('pullImage / pushImage', () => {
         expect(direct).toEqual({ digest: 'sha256:def', size: 528 });
     });
 
+    it('reads digest and size from the status line when no aux chunk is sent', async () => {
+        // output of a push with the containerd image store (Docker 29)
+        const digest = `sha256:${'4'.repeat(64)}`;
+        const { client } = createFakeClient([
+            { status: 'The push refers to repository [localhost:5000/x]' },
+            { status: 'Pushed', progressDetail: {}, id: '3f26bc2dec0b' },
+            {
+                progressDetail: {},
+                aux: {
+                    manifestPushedInsteadOfIndex: true,
+                    selectedManifest: { digest: `sha256:${'5'.repeat(64)}`, size: 1 },
+                },
+            },
+            { status: `v1: digest: ${digest} size: 1026` },
+        ]);
+
+        const result = await pushImage(client, 'localhost:5000/x:v1');
+
+        expect(result).toEqual({ digest, size: 1026 });
+    });
+
+    it('prefers the aux digest over the status line', async () => {
+        const { client } = createFakeClient([
+            { progressDetail: {}, aux: { Tag: 'v1', Digest: 'sha256:def', Size: 528 } },
+            { status: `v1: digest: sha256:${'4'.repeat(64)} size: 1026` },
+        ]);
+
+        const result = await pushImage(client, 'repo/x');
+
+        expect(result).toEqual({ digest: 'sha256:def', size: 528 });
+    });
+
     it('still calls the caller\'s callbacks', async () => {
         const { client } = createFakeClient([
             { status: 'Pushing', id: 'a', progressDetail: { current: 1, total: 2 } },

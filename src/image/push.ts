@@ -11,6 +11,9 @@ import type { ModemStreamWaitOptions } from '../modem';
 import { runImageOperation } from './operation';
 import type { PushImageInput } from './types';
 
+// e.g. "v1: digest: sha256:45e0…9e1d size: 1026"
+const PUSH_DIGEST_STATUS_REGEX = /digest: (sha256:[a-f0-9]{64}) size: (\d+)/;
+
 /**
  * Push an image and resolve with the digest and size reported by the daemon.
  */
@@ -25,6 +28,10 @@ export async function pushImage(
     let digest : string | undefined;
     let size : number | undefined;
 
+    // the containerd image store reports the digest only in the status line
+    let statusDigest : string | undefined;
+    let statusSize : number | undefined;
+
     await runImageOperation(
         client,
         // eslint-disable-next-line unicorn/no-return-array-push -- Image.push is a docker push, not Array.prototype.push
@@ -35,6 +42,17 @@ export async function pushImage(
         }) as Promise<NodeJS.ReadableStream>,
         options,
         (event) => {
+            if (event.kind === 'status') {
+                const match = PUSH_DIGEST_STATUS_REGEX.exec(event.chunk.status);
+
+                if (match) {
+                    statusDigest = match[1];
+                    statusSize = Number(match[2]);
+                }
+
+                return;
+            }
+
             if (event.kind !== 'aux') {
                 return;
             }
@@ -48,6 +66,11 @@ export async function pushImage(
             }
         },
     );
+
+    if (digest === undefined) {
+        digest = statusDigest;
+        size ??= statusSize;
+    }
 
     return { digest, size };
 }
