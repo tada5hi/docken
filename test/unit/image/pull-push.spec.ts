@@ -52,6 +52,86 @@ describe('pullImage / pushImage', () => {
         expect(direct).toEqual({ digest: 'sha256:def', size: 528 });
     });
 
+    describe('digest sources', () => {
+        const d4 = `sha256:${'4'.repeat(64)}`;
+        const d5 = `sha256:${'5'.repeat(64)}`;
+
+        it('reads the selected manifest of the containerd image store', async () => {
+            // output of a push with the containerd image store (Docker 29)
+            const { client } = createFakeClient([
+                { status: 'The push refers to repository [localhost:5000/x]' },
+                { status: 'Pushed', progressDetail: {}, id: '3f26bc2dec0b' },
+                {
+                    progressDetail: {},
+                    aux: {
+                        manifestPushedInsteadOfIndex: true,
+                        originalIndex: { digest: d4, size: 9226 },
+                        selectedManifest: { digest: d5, size: 1026 },
+                    },
+                },
+                { status: `v1: digest: ${d5} size: 1026` },
+            ]);
+
+            expect(await pushImage(client, 'localhost:5000/x:v1')).toEqual({ digest: d5, size: 1026 });
+        });
+
+        it('falls back to the status line when no aux chunk is sent', async () => {
+            const { client } = createFakeClient([
+                { status: 'Pushed', progressDetail: {}, id: 'a' },
+                { status: `v1: digest: ${d4} size: 1026` },
+            ]);
+
+            expect(await pushImage(client, 'repo/x')).toEqual({ digest: d4, size: 1026 });
+        });
+
+        it('prefers the classic aux digest over the other sources', async () => {
+            const { client } = createFakeClient([
+                { progressDetail: {}, aux: { Tag: 'v1', Digest: 'sha256:def', Size: 528 } },
+                { progressDetail: {}, aux: { selectedManifest: { digest: d5, size: 1 } } },
+                { status: `v1: digest: ${d4} size: 1026` },
+            ]);
+
+            expect(await pushImage(client, 'repo/x')).toEqual({ digest: 'sha256:def', size: 528 });
+        });
+
+        it('ignores sources naming another tag when a tag is given', async () => {
+            const { client } = createFakeClient([
+                { progressDetail: {}, aux: { Tag: 'v1', Digest: d4, Size: 1 } },
+                { status: `v1: digest: ${d4} size: 1` },
+                { status: `v2: digest: ${d5} size: 2` },
+            ]);
+
+            expect(await pushImage(client, 'repo/x', { tag: 'v2' })).toEqual({ digest: d5, size: 2 });
+        });
+
+        it('accepts other digest algorithms', async () => {
+            const digest = `sha512:${'a'.repeat(128)}`;
+            const { client } = createFakeClient([{ status: `latest: digest: ${digest} size: 7` }]);
+
+            expect(await pushImage(client, 'repo/x')).toEqual({ digest, size: 7 });
+        });
+
+        it('fills a missing size only from a source with the same digest', async () => {
+            const same = createFakeClient([
+                { progressDetail: {}, aux: { Tag: 'v1', Digest: d4 } },
+                { status: `v1: digest: ${d4} size: 1026` },
+            ]);
+            const other = createFakeClient([
+                { progressDetail: {}, aux: { Tag: 'v1', Digest: d4 } },
+                { status: `v1: digest: ${d5} size: 1026` },
+            ]);
+
+            expect(await pushImage(same.client, 'repo/x')).toEqual({ digest: d4, size: 1026 });
+            expect(await pushImage(other.client, 'repo/x')).toEqual({ digest: d4, size: undefined });
+        });
+
+        it('resolves without a digest when the daemon reports none', async () => {
+            const { client } = createFakeClient([{ status: 'Pushed', progressDetail: {}, id: 'a' }]);
+
+            expect(await pushImage(client, 'repo/x')).toEqual({ digest: undefined, size: undefined });
+        });
+    });
+
     it('still calls the caller\'s callbacks', async () => {
         const { client } = createFakeClient([
             { status: 'Pushing', id: 'a', progressDetail: { current: 1, total: 2 } },
