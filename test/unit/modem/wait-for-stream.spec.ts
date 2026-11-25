@@ -226,9 +226,11 @@ describe('waitForModemStream', () => {
 
         it('should reject immediately for an already aborted signal', async () => {
             const { modem, callbacks } = createDeferredModem();
-            const error = await catchError(waitForModemStream(modem, createStream(), { signal: AbortSignal.abort() }));
+            const input = createStream();
+            const error = await catchError(waitForModemStream(modem, input, { signal: AbortSignal.abort() }));
 
             expect(callbacks.calls).toBe(0);
+            expect(input.destroyed).toBe(true);
             expect(isModemStreamError(error)).toBe(true);
             if (!isModemStreamError(error)) {
                 throw new Error('unreachable');

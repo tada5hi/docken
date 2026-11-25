@@ -104,6 +104,14 @@ function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamW
     return false;
 }
 
+function destroyStream(stream: NodeJS.ReadableStream) {
+    const { destroy } = stream as { destroy?: unknown };
+
+    if (typeof destroy === 'function') {
+        destroy.call(stream);
+    }
+}
+
 export async function waitForModemStream(
     modem: Pick<Modem, 'followProgress'>,
     stream: NodeJS.ReadableStream,
@@ -115,6 +123,7 @@ export async function waitForModemStream(
 
     return new Promise<unknown>((resolve, reject) => {
         if (signal?.aborted) {
+            destroyStream(stream);
             reject(createModemStreamAbortError(signal.reason, reader.lines()));
 
             return;
@@ -129,12 +138,7 @@ export async function waitForModemStream(
 
             settled = true;
 
-            const { destroy } = stream as { destroy?: unknown };
-
-            if (typeof destroy === 'function') {
-                destroy.call(stream);
-            }
-
+            destroyStream(stream);
             reject(createModemStreamAbortError(signal?.reason, reader.lines()));
         };
 
