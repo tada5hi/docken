@@ -1,5 +1,40 @@
 # Changelog
 
+## [3.0.0](https://github.com/tada5hi/docken/compare/v2.0.2...v3.0.0) (2026-11-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* ScanResultItem.path always uses "/"; .git and node_modules are skipped by default.
+* the published runtime requires Node >=24.0.0 (was >=22.0.0).
+* detectDirectoryMeta and readMetaFile are removed; DirectoryMeta is now { type, attributes? }. Use readDirectoryMeta.
+* docken and docken/client can no longer be loaded with require().
+
+### Features
+
+* add stream cancellation, image helpers, daemon wait and scan options ([#116](https://github.com/tada5hi/docken/issues/116)) ([175321f](https://github.com/tada5hi/docken/commit/175321ff03e6a57dcf8970200e77ead0df4f6478))
+* attach build output to failed stream errors ([#113](https://github.com/tada5hi/docken/issues/113)) ([f67effa](https://github.com/tada5hi/docken/commit/f67effacd82f7b5be25967a4ce0b46c4e0c5f8de))
+* require Node &gt;=24 ([7fabdac](https://github.com/tada5hi/docken/commit/7fabdac222466f799955f5a6c289ff2a98d67e55))
+* ship docken as ESM-only ([0849074](https://github.com/tada5hi/docken/commit/084907410ba5d6593080caed104019af4c251bf0))
+
+
+### Bug Fixes
+
+* **deps-dev:** bump @babel/core from 7.28.5 to 7.29.7 ([#98](https://github.com/tada5hi/docken/issues/98)) ([4cb669a](https://github.com/tada5hi/docken/commit/4cb669a241dc17f1a1f6a9d5653a7f19780a9f7f))
+* **deps-dev:** bump sigstore from 4.0.0 to 4.1.1 ([#97](https://github.com/tada5hi/docken/issues/97)) ([4c8dc0d](https://github.com/tada5hi/docken/commit/4c8dc0d2209770659fb08e6ddaa12835298ed625))
+* **deps:** bump actions/checkout from 6 to 7 ([#100](https://github.com/tada5hi/docken/issues/100)) ([6cb9de7](https://github.com/tada5hi/docken/commit/6cb9de742c5e33784abf83a3853357682c374985))
+* **deps:** bump codecov/codecov-action from 6.0.0 to 7.1.1 ([#101](https://github.com/tada5hi/docken/issues/101)) ([3168bc9](https://github.com/tada5hi/docken/commit/3168bc9d1921a8423d7636aa09cc5c714806c341))
+* **deps:** bump protobufjs from 7.5.5 to 7.6.6 ([#96](https://github.com/tada5hi/docken/issues/96)) ([0b2f9cd](https://github.com/tada5hi/docken/commit/0b2f9cd33e8874dcc7bfddefeba339f519820b4e))
+* **deps:** bump the majorprod group with 2 updates ([#102](https://github.com/tada5hi/docken/issues/102)) ([8b32dc5](https://github.com/tada5hi/docken/commit/8b32dc5958c598fea40509bf3a23c1093d625cf6))
+* **deps:** bump the minorandpatch group across 1 directory with 11 updates ([#80](https://github.com/tada5hi/docken/issues/80)) ([286b122](https://github.com/tada5hi/docken/commit/286b122c9d4102bca74ebabec27e7671614e1b54))
+* include readme image assets in package ([#110](https://github.com/tada5hi/docken/issues/110)) ([f34e7f2](https://github.com/tada5hi/docken/commit/f34e7f286b85b46f11d50eaf0a9e9722b55e9880))
+* read meta files with locter again & bump dependencies ([a08e4e9](https://github.com/tada5hi/docken/commit/a08e4e999c1638f696b668e9bd4a6d58bd5eaf8a))
+
+
+### Code Refactoring
+
+* deepen stream reader, directory meta and scan modules ([#114](https://github.com/tada5hi/docken/issues/114)) ([4f58ce7](https://github.com/tada5hi/docken/commit/4f58ce754ade3edf0af17e531a5753ac59ff86a3))
+
 ## [2.0.2](https://github.com/tada5hi/docken/compare/v2.0.1...v2.0.2) (2025-12-29)
 
 
