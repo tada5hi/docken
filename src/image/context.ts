@@ -8,6 +8,7 @@
 import ignore from '@balena/dockerignore';
 import fs from 'node:fs';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 import { pack } from 'tar-fs';
 
 const DOCKERIGNORE = '.dockerignore';
@@ -157,8 +158,8 @@ export async function packBuildContext(
     const allowed = new Set(entries.map((entry) => path.join(context, entry)));
 
     // a directory entry is read by tar-fs; never re-add excluded children.
-    return pack(context, {
+    return Readable.from(pack(context, {
         entries,
         ignore: (name) => !allowed.has(name),
-    });
+    }), { objectMode: false });
 }
