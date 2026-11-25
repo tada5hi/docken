@@ -7,9 +7,8 @@
 
 import { Readable } from 'node:stream';
 import { describe, expect, it } from 'vitest';
-import type { Modem } from '../../../src/modem';
+import type { Modem, ModemStreamEvent } from '../../../src/modem';
 import { isModemStreamError, readModemStream } from '../../../src/modem';
-import type { ModemStreamEvent } from '../../../src/modem/reader';
 import { ModemStreamReader } from '../../../src/modem/reader';
 
 type FakeModem = Pick<Modem, 'followProgress'>;

@@ -5,8 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import type { ModemStreamReadOptions } from '../../modem';
-import type { ModemStreamEvent } from '../../modem/reader';
+import type { ModemStreamEvent, ModemStreamReadOptions } from '../../modem';
 import { readModemStream } from '../../modem';
 import type { Client } from '../types';
 
