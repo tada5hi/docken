@@ -43,4 +43,26 @@ describe('waitForDaemon', () => {
 
         await expect(promise).rejects.toBe(reason);
     });
+
+    it('does not ping with an already aborted signal', async () => {
+        const ping = vi.fn().mockResolvedValue('OK');
+        const reason = new Error('stop');
+
+        await expect(waitForDaemon({ ping }, { signal: AbortSignal.abort(reason) })).rejects.toBe(reason);
+        expect(ping).not.toHaveBeenCalled();
+    });
+
+    it('aborts a ping that is in flight', async () => {
+        const reason = new Error('stop');
+        const controller = new AbortController();
+        const ping = vi.fn((opts: { abortSignal: AbortSignal }) => new Promise((_resolve, reject) => {
+            opts.abortSignal.addEventListener('abort', () => reject(new Error('request aborted')));
+        }));
+
+        const promise = waitForDaemon({ ping } as any, { signal: controller.signal });
+        setTimeout(() => controller.abort(reason), 10);
+
+        await expect(promise).rejects.toBe(reason);
+        expect(ping).toHaveBeenCalledTimes(1);
+    });
 });

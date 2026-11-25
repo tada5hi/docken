@@ -24,10 +24,17 @@ export async function waitForDaemon(
         }
 
         try {
-            await client.ping();
+            // dockerode's ping supports abortSignal, @types/dockerode does not declare it
+            await (client.ping as (opts?: { abortSignal?: AbortSignal }) => Promise<unknown>)(
+                { abortSignal: options.signal },
+            );
 
             return;
         } catch (e) {
+            if (options.signal?.aborted) {
+                throw options.signal.reason;
+            }
+
             lastError = e;
         }
 
