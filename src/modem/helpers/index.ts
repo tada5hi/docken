@@ -7,5 +7,6 @@
 
 export * from './abort';
 export * from './error';
+export * from './read-stream';
 export * from './wait-for-stream';
 export * from './types';

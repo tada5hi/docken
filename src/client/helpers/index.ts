@@ -6,4 +6,5 @@
  */
 
 export * from './check';
+export * from './read-stream';
 export * from './wait-stream';

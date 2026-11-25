@@ -24,6 +24,8 @@ export type ModemOnQuantityFn = (quantity: Quantity) => void | Promise<void>;
 
 export type ModemOnEventFn = (event: ModemStreamEvent) => void | Promise<void>;
 
+export type ModemStreamReadOptions = Pick<ModemStreamWaitOptions, 'signal' | 'timeout'>;
+
 export type ModemStreamWaitOptions = {
     onFinished?: ModemOnFinishedFn,
     onChunk?: ModemOnChunkFn,
