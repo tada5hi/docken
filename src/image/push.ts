@@ -27,7 +27,7 @@ export async function pushImage(
 
     await runImageOperation(
         client,
-        // eslint-disable-next-line unicorn/no-return-array-push
+        // eslint-disable-next-line unicorn/no-return-array-push -- Image.push is a docker push, not Array.prototype.push
         (abortSignal) => target.push({
             authconfig: input.authconfig,
             tag: input.tag,

@@ -5,6 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import { isObject } from 'smob';
 import { ModemStreamError } from './error';
 
 /**
@@ -40,7 +41,7 @@ export function createAbortSignal(
 }
 
 export function createModemStreamAbortError(reason: unknown, output: string[]) : ModemStreamError {
-    const timedOut = Error.isError(reason) && reason.name === 'TimeoutError';
+    const timedOut = isObject(reason) && reason.name === 'TimeoutError';
 
     return new ModemStreamError(
         timedOut ? 'The stream timed out.' : 'The stream was aborted.',

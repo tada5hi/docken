@@ -17,7 +17,7 @@ export type PushImageInput = {
     tag?: string,
 };
 
-export type BuildImageInput = Docker.ImageBuildOptions & {
+export type BuildImageInput = Omit<Docker.ImageBuildOptions, 'abortSignal'> & {
     /**
      * Directory (packed honouring .dockerignore) or ready tar stream.
      */
