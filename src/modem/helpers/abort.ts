@@ -25,7 +25,7 @@ export function createAbortSignal(
         Number.isFinite(options.timeout) &&
         options.timeout > 0
     ) {
-        signals.push(AbortSignal.timeout(options.timeout));
+        signals.push(AbortSignal.timeout(Math.min(Math.ceil(options.timeout), 2 ** 31 - 1)));
     }
 
     if (signals.length === 0) {

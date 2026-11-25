@@ -296,6 +296,23 @@ describe('waitForModemStream', () => {
             expect((error.cause as Error).name).toBe('TimeoutError');
         });
 
+        it('should round a fractional timeout up', async () => {
+            const { modem } = createDeferredModem();
+            const error = await catchError(waitForModemStream(modem, createStream(), { timeout: 1.5 }));
+
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.message).toBe('The stream timed out.');
+        });
+
+        it('should clamp an oversized timeout', async () => {
+            const modem = createFakeModem([], null, []);
+
+            await expect(waitForModemStream(modem, createStream(), { timeout: 2 ** 40 })).resolves.toEqual([]);
+        });
+
         it.each([0, -1])('should ignore the non-positive timeout %d', async (timeout) => {
             const modem = createFakeModem([], null, []);
 

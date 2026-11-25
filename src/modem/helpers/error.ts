@@ -31,12 +31,12 @@ export class ModemStreamError extends Error {
     /**
      * Raw errorDetail of the daemon, when the failure came from its response.
      */
-    readonly detail?: ObjectLiteral;
+    readonly detail?: { code?: number, message?: string } & ObjectLiteral;
 
     constructor(message: string, options: {
-        output: string[], 
-        cause?: unknown, 
-        aborted?: boolean 
+        output: string[],
+        cause?: unknown,
+        aborted?: boolean,
     }) {
         super(message, { cause: options.cause });
 

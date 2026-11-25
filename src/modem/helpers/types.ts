@@ -60,6 +60,7 @@ export type ModemStreamWaitOptions = {
 
     /**
      * Abort the wait after this many milliseconds.
+     * Rounded up to whole milliseconds and capped at 2 ** 31 - 1.
      * Values <= 0 or non-finite are ignored.
      */
     timeout?: number,
