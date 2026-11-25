@@ -5,10 +5,31 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import { registerFormat, unregisterFormat } from 'locter';
 import { describe, expect, it } from 'vitest';
 import { MetaType, readDirectoryMeta } from '../../../src';
 
 describe('readDirectoryMeta', () => {
+    it('should parse descriptors as JSON despite a custom .json format rule', async () => {
+        const hijacked = { hijacked: true };
+        registerFormat({
+            id: 'docken-test-json',
+            test: ['.json'],
+            reader: {
+                read: async () => hijacked,
+                readSync: () => hijacked,
+            },
+        });
+
+        try {
+            const result = await readDirectoryMeta('test/data/scan/group/image');
+
+            expect(result).toEqual({ type: MetaType.IMAGE, attributes: { name: 'Cool image' } });
+        } finally {
+            unregisterFormat('docken-test-json');
+        }
+    });
+
     it('should read image meta with attributes', async () => {
         const result = await readDirectoryMeta('test/data/scan/group/image');
 

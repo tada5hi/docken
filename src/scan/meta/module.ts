@@ -14,7 +14,8 @@ import { MetaFileName, MetaType } from './constants';
 import type { DirectoryMeta } from './types';
 
 async function loadJSONRecord(filePath: string) {
-    const content : unknown = await read(filePath);
+    // the built-in reader, so a process-wide custom .json rule cannot reinterpret descriptors
+    const content : unknown = await read(filePath, { format: 'json' });
 
     if (!isObject(content)) {
         throw new Error('The file content could not be read.');
