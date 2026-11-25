@@ -8,10 +8,54 @@
 import path from 'node:path';
 import { distinctArray } from 'smob';
 import { MetaType } from '../meta';
+import type { DirectoryMeta } from '../meta';
 import { sortScanResultItemsByPath } from '../result';
 import type { ScanResultItem } from '../result';
 import type { ScanResult } from '../types';
 import type { ScanNode } from './types';
+
+/**
+ * Build the item of a recognised directory (node.meta must be set).
+ */
+export function createScanItem(
+    node: ScanNode & { meta: DirectoryMeta },
+    parent: ScanResultItem | undefined,
+) : ScanResultItem {
+    const item : ScanResultItem = parent ?
+        {
+            virtualPath: parent.virtualPath ?
+                path.posix.join(parent.virtualPath, node.name) :
+                node.name,
+            path: path.posix.join(parent.path, node.name),
+        } :
+        {
+            virtualPath: node.name,
+            path: node.name,
+        };
+
+    if (node.meta.attributes !== undefined) {
+        item.attributes = {
+            ...(parent && parent.attributes ? parent.attributes : {}),
+            ...node.meta.attributes,
+        };
+    } else if (parent && parent.attributes) {
+        item.attributes = { ...parent.attributes };
+    }
+
+    return item;
+}
+
+/**
+ * Context for the children of a plain (non-recognised) directory.
+ */
+export function createPlainScanContext(
+    node: ScanNode,
+    parent: ScanResultItem | undefined,
+) : ScanResultItem {
+    return parent ?
+        { ...parent, path: path.posix.join(parent.path, node.name) } :
+        { path: node.name };
+}
 
 function foldNode(
     node: ScanNode,
@@ -22,26 +66,7 @@ function foldNode(
     let context = parent;
 
     if (node.meta) {
-        const item : ScanResultItem = parent ?
-            {
-                virtualPath: parent.virtualPath ?
-                    path.posix.join(parent.virtualPath, node.name) :
-                    node.name,
-                path: path.posix.join(parent.path, node.name),
-            } :
-            {
-                virtualPath: node.name,
-                path: node.name,
-            };
-
-        if (node.meta.attributes !== undefined) {
-            item.attributes = {
-                ...(parent && parent.attributes ? parent.attributes : {}),
-                ...node.meta.attributes,
-            };
-        } else if (parent && parent.attributes) {
-            item.attributes = { ...parent.attributes };
-        }
+        const item = createScanItem(node as ScanNode & { meta: DirectoryMeta }, parent);
 
         if (node.meta.type === MetaType.GROUP) {
             output.groups.push(item);
@@ -52,9 +77,7 @@ function foldNode(
             output.images.push(item);
         }
     } else if (!root) {
-        context = parent ?
-            { ...parent, path: path.posix.join(parent.path, node.name) } :
-            { path: node.name };
+        context = createPlainScanContext(node, parent);
     }
 
     for (const child of node.children) {

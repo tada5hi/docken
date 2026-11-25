@@ -7,7 +7,8 @@
 
 import { MetaType } from './meta';
 import type { ScanOptions, ScanResult } from './types';
-import { foldScanTree, walkDirectory } from './tree';
+import { foldScanTree, foldScanTreeItems, walkDirectory } from './tree';
+import type { ScanTreeItem } from './tree';
 import { validateScanItems } from './validate';
 
 export async function scanDirectory<
@@ -26,4 +27,46 @@ export async function scanDirectory<
         images: await validateScanItems<TImage>(result.images, MetaType.IMAGE, options.validate?.image),
         groups: await validateScanItems<TGroup>(result.groups, MetaType.GROUP, options.validate?.group),
     };
+}
+
+async function validateTreeItems<TImage, TGroup>(
+    items: ScanTreeItem[],
+    options: ScanOptions<TImage, TGroup>,
+) : Promise<ScanTreeItem<TImage | TGroup>[]> {
+    const output : ScanTreeItem<TImage | TGroup>[] = [];
+
+    for (const item of items) {
+        const {
+            type, 
+            children, 
+            ...flat 
+        } = item;
+
+        const [validated] = type === MetaType.GROUP ?
+            await validateScanItems<TGroup>([flat], type, options.validate?.group) :
+            await validateScanItems<TImage>([flat], type, options.validate?.image);
+
+        output.push({
+            ...validated,
+            type,
+            children: await validateTreeItems(children, options),
+        });
+    }
+
+    return output;
+}
+
+export async function scanDirectoryTree<
+    TImage = Record<string, any>,
+    TGroup = Record<string, any>,
+>(
+    cwd: string,
+    options: ScanOptions<TImage, TGroup> = {},
+) : Promise<ScanTreeItem<TImage | TGroup>[]> {
+    const items = foldScanTreeItems(await walkDirectory(cwd, {
+        ignore: options.ignore,
+        maxDepth: options.maxDepth,
+    }));
+
+    return validateTreeItems(items, options);
 }

@@ -9,5 +9,6 @@ export * from './error';
 export * from './meta';
 export * from './module';
 export * from './result';
+export type { ScanTreeItem } from './tree';
 export * from './types';
 export * from './validate';
