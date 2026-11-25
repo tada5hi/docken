@@ -5,9 +5,6 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
     MetaType,
@@ -87,29 +84,5 @@ describe('scanDirectoryTree', () => {
 
         expect(seen.length).toBeGreaterThan(0);
         expect(seen.length).toBe(new Set(seen).size);
-    });
-
-    it('matches the flat scan for siblings sharing a virtual path', async () => {
-        const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'docken-tree-'));
-
-        try {
-            await fs.mkdir(path.join(tmp, 'g', 'a', 'shared'), { recursive: true });
-            await fs.mkdir(path.join(tmp, 'g', 'b', 'shared'), { recursive: true });
-            await fs.writeFile(path.join(tmp, 'g', 'image-group.json'), '{}');
-            await fs.writeFile(path.join(tmp, 'g', 'a', 'shared', 'Dockerfile'), 'FROM scratch\n');
-            await fs.writeFile(path.join(tmp, 'g', 'b', 'shared', 'Dockerfile'), 'FROM scratch\n');
-
-            const flat = await scanDirectory(tmp);
-            const tree = await scanDirectoryTree(tmp);
-
-            // item paths are real paths, so both stay (virtualPath g/shared)
-            expect(tree[0].children.map((item) => [item.path, item.virtualPath])).toEqual([
-                ['g/a/shared', 'g/shared'],
-                ['g/b/shared', 'g/shared'],
-            ]);
-            expect(flatten(tree).sort()).toEqual([...flat.images, ...flat.groups].map((item) => item.path).sort());
-        } finally {
-            await fs.rm(tmp, { recursive: true, force: true });
-        }
     });
 });

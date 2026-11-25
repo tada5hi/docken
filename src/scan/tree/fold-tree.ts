@@ -5,7 +5,6 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import { distinctArray } from 'smob';
 import { MetaType } from '../meta';
 import type { DirectoryMeta } from '../meta';
 import { sortScanResultItemsByPath } from '../result';
@@ -46,8 +45,7 @@ function foldNode(
 }
 
 function sortTree(items: ScanTreeItem[]) {
-    // same dedupe as the flat scan (foldScanTree)
-    sortScanResultItemsByPath(distinctArray(items));
+    sortScanResultItemsByPath(items);
 
     for (const item of items) {
         sortTree(item.children);
