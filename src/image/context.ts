@@ -12,7 +12,14 @@ import { pack } from 'tar-fs';
 
 const DOCKERIGNORE = '.dockerignore';
 
-async function walk(root: string, relative: string, output: string[]) : Promise<void> {
+type WalkFilter = (entryPath: string) => boolean;
+
+async function walk(
+    root: string,
+    relative: string,
+    output: string[],
+    skipDirectory: WalkFilter,
+) : Promise<void> {
     const entries = await fs.promises.readdir(path.join(root, relative), { withFileTypes: true });
 
     for (const entry of entries) {
@@ -20,11 +27,29 @@ async function walk(root: string, relative: string, output: string[]) : Promise<
 
         // symlinks are listed as entries and never followed.
         if (entry.isDirectory()) {
-            await walk(root, entryPath, output);
+            if (!skipDirectory(entryPath)) {
+                await walk(root, entryPath, output, skipDirectory);
+            }
         } else {
             output.push(entryPath);
         }
     }
+}
+
+async function readPatterns(context: string) : Promise<string | undefined> {
+    try {
+        return await fs.promises.readFile(path.join(context, DOCKERIGNORE), 'utf8');
+    } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+            return undefined;
+        }
+
+        throw e;
+    }
+}
+
+function hasExceptions(patterns: string) : boolean {
+    return patterns.split(/\r?\n/).some((line) => line.trimStart().startsWith('!'));
 }
 
 async function exists(file: string) : Promise<boolean> {
@@ -46,23 +71,23 @@ export async function listBuildContextFiles(
     context: string,
     dockerfile: string = 'Dockerfile',
 ) : Promise<string[]> {
+    const patterns = await readPatterns(context);
     const files : string[] = [];
 
-    await walk(context, '', files);
+    if (typeof patterns === 'undefined') {
+        await walk(context, '', files, () => false);
 
-    let patterns : string | undefined;
-
-    try {
-        patterns = await fs.promises.readFile(path.join(context, DOCKERIGNORE), 'utf8');
-    } catch (e) {
-        if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
-            return files.sort();
-        }
-
-        throw e;
+        return files.sort();
     }
 
     const matcher = ignore({ ignorecase: false }).add(patterns);
+
+    // without exceptions nothing below an excluded directory can be kept,
+    // so it is not walked at all.
+    const prune = !hasExceptions(patterns);
+
+    await walk(context, '', files, (entryPath) => prune && matcher.ignores(entryPath));
+
     const result = files.filter((file) => !matcher.ignores(file));
 
     for (const keep of [dockerfile, DOCKERIGNORE]) {

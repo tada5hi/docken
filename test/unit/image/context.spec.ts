@@ -65,4 +65,18 @@ describe('listBuildContextFiles', () => {
             fs.rmSync(outside, { recursive: true, force: true });
         }
     });
+
+    it.skipIf(process.getuid?.() === 0)('does not walk a directory excluded without exceptions', async () => {
+        fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM scratch');
+        fs.writeFileSync(path.join(dir, '.dockerignore'), 'data/\n');
+        fs.mkdirSync(path.join(dir, 'data'));
+        fs.writeFileSync(path.join(dir, 'data', 'x.txt'), 'x');
+        fs.chmodSync(path.join(dir, 'data'), 0o000);
+
+        try {
+            expect(await listBuildContextFiles(dir)).toEqual(['.dockerignore', 'Dockerfile']);
+        } finally {
+            fs.chmodSync(path.join(dir, 'data'), 0o755);
+        }
+    });
 });
