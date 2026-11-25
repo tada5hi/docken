@@ -5,7 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import type { DirectoryMeta } from '../meta';
+import type { DirectoryMeta, MetaType } from '../meta';
+import type { ScanResultItem } from '../result';
 
 export type ScanNode = {
     /**
@@ -20,4 +21,21 @@ export type ScanNode = {
      * Sub-directories, in opendir order.
      */
     children: ScanNode[],
+};
+
+export type WalkOptions = {
+    /**
+     * Directory base names to skip (default: ['.git', 'node_modules']).
+     * The root is always walked.
+     */
+    ignore?: string[],
+    /**
+     * Maximum depth, the root is 0 (default: unlimited).
+     */
+    maxDepth?: number,
+};
+
+export type ScanTreeItem<T = Record<string, any>> = ScanResultItem<T> & {
+    type: MetaType,
+    children: ScanTreeItem<T>[],
 };

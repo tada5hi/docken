@@ -5,6 +5,8 @@
 | `src/client` | Docker client integration |
 | `src/modem` | Docker transport/modem behavior |
 | `src/scan` | Scanning helpers |
+| `src/image` | Image build, pull and push helpers |
+| `src/daemon` | Daemon readiness |
 | `src/helpers` | Shared stream and Docker utilities |
 | `src/index.ts` | Public package exports |
 | `.github/assets` | README logo and mechanism diagram |

@@ -9,6 +9,7 @@ import type { Modem } from '../types';
 import { extractErrorFromModemResponse } from '../utils';
 import type { ModemStreamEvent } from '../reader';
 import { ModemStreamReader } from '../reader';
+import { createAbortSignal, createModemStreamAbortError } from './abort';
 import { ModemStreamError } from './error';
 import type { ModemStreamWaitOptions } from './types';
 
@@ -24,6 +25,23 @@ function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamW
                 options.onBuilding(event.progress);
             }
 
+            return false;
+        }
+        case 'downloadingTotal': {
+            if (options.onDownloadingTotal) {
+                options.onDownloadingTotal(event.progress);
+            }
+
+            return false;
+        }
+        case 'pushingTotal': {
+            if (options.onPushingTotal) {
+                options.onPushingTotal(event.progress);
+            }
+
+            return false;
+        }
+        case 'aux': {
             return false;
         }
         case 'downloading': {
@@ -86,6 +104,14 @@ function dispatchModemStreamEvent(event: ModemStreamEvent, options: ModemStreamW
     return false;
 }
 
+function destroyStream(stream: NodeJS.ReadableStream) {
+    const { destroy } = stream as { destroy?: unknown };
+
+    if (typeof destroy === 'function') {
+        destroy.call(stream);
+    }
+}
+
 export async function waitForModemStream(
     modem: Pick<Modem, 'followProgress'>,
     stream: NodeJS.ReadableStream,
@@ -93,10 +119,41 @@ export async function waitForModemStream(
 ) {
     const reader = new ModemStreamReader();
 
+    const signal = createAbortSignal(options);
+
     return new Promise<unknown>((resolve, reject) => {
+        if (signal?.aborted) {
+            destroyStream(stream);
+            reject(createModemStreamAbortError(signal.reason, reader.lines()));
+
+            return;
+        }
+
+        let settled = false;
+
+        const onAbort = () => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+
+            destroyStream(stream);
+            reject(createModemStreamAbortError(signal?.reason, reader.lines()));
+        };
+
+        signal?.addEventListener('abort', onAbort, { once: true });
+
         modem.followProgress(
             stream,
             (error, response) => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                signal?.removeEventListener('abort', onAbort);
+
                 const failure = error || extractErrorFromModemResponse(response);
 
                 if (failure) {
@@ -115,13 +172,27 @@ export async function waitForModemStream(
                 resolve(response);
             },
             (res) => {
+                if (settled) {
+                    return;
+                }
+
+                let handled = false;
+
                 for (const event of reader.push(res)) {
-                    if (dispatchModemStreamEvent(event, options)) {
+                    if (settled) {
                         return;
+                    }
+
+                    if (options.onEvent) {
+                        options.onEvent(event);
+                    }
+
+                    if (!handled && !settled) {
+                        handled = dispatchModemStreamEvent(event, options);
                     }
                 }
 
-                if (options.onChunk) {
+                if (!handled && !settled && options.onChunk) {
                     options.onChunk(res);
                 }
             },

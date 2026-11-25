@@ -5,7 +5,6 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import path from 'node:path';
 import type { ScanResultItem } from './types';
 
 function sorter(a: string[], b: string[]) {
@@ -38,8 +37,8 @@ function sorter(a: string[], b: string[]) {
 
 export function sortScanResultItemsByPath(meta: ScanResultItem[]) {
     return meta.sort((a, b) => {
-        const aParts = a.path.split(path.sep);
-        const bParts = b.path.split(path.sep);
+        const aParts = a.path.split('/');
+        const bParts = b.path.split('/');
 
         return sorter(aParts, bParts);
     });

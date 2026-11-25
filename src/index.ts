@@ -6,6 +6,8 @@
  */
 
 export * from './client';
+export * from './daemon';
 export * from './helpers';
+export * from './image';
 export * from './modem';
 export * from './scan';

@@ -8,8 +8,10 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { Client, Progress } from '../../src';
 import {
+    buildImage,
     createClient,
     isModemStreamError,
+    pullImage,
     waitForStream,
 } from '../../src';
 import type { Quantity } from '../../src/types';
@@ -38,6 +40,12 @@ describe('daemon', () => {
 
         expect(downloadingProgress.length).toBeGreaterThanOrEqual(0);
         expect(extractingProgress.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should pull image with pullImage and return the digest', async () => {
+        const result = await pullImage(client, 'hello-world:latest');
+
+        expect(result.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
     });
 
     it('should inspect image', async () => {
@@ -89,5 +97,25 @@ describe('daemon', () => {
         }
 
         expect(error.output.some((line) => /^Step 2\/2 : COPY does-not-exist\.txt/.test(line))).toBe(true);
+    });
+
+    it('should build an image from a directory honouring .dockerignore', async () => {
+        const steps : Progress[] = [];
+
+        try {
+            const result = await buildImage(
+                client,
+                { context: 'test/data/build-context', t: 'docken-test:context' },
+                { onBuilding: (step) => { steps.push(step); } },
+            );
+
+            expect(result.imageId).toMatch(/^sha256:/);
+            expect(steps.length).toBeGreaterThan(0);
+
+            const info = await client.getImage('docken-test:context').inspect();
+            expect(info.Id).toBeDefined();
+        } finally {
+            await client.getImage('docken-test:context').remove({ force: true }).catch(() => {});
+        }
     });
 });

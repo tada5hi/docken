@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest';
  * view the LICENSE file that was distributed with this source code.
  */
 
-import path from 'node:path';
 import type { ScanResultItem } from '../../../src';
 import { scanDirectory } from '../../../src';
 
@@ -15,7 +14,7 @@ describe('scan', () => {
         const directory = await scanDirectory('test/data/scan');
         expect(directory.images).toEqual([
             {
-                path: `group${path.sep}image`,
+                path: `group/image`,
                 virtualPath: 'group/image',
                 attributes: {
                     license: 'MIT',
@@ -23,7 +22,7 @@ describe('scan', () => {
                 },
             },
             {
-                path: `group${path.sep}undefined${path.sep}sub-sub-group${path.sep}image`,
+                path: `group/undefined/sub-sub-group/image`,
                 virtualPath: 'group/sub-sub-group/image',
                 attributes: {
                     license: 'MIT',
@@ -47,7 +46,7 @@ describe('scan', () => {
                 },
             },
             {
-                path: `group${path.sep}sub-group`,
+                path: `group/sub-group`,
                 virtualPath: 'group/sub-group',
                 attributes: {
                     license: 'MIT',
@@ -55,7 +54,7 @@ describe('scan', () => {
                 },
             },
             {
-                path: `group${path.sep}undefined${path.sep}sub-sub-group`,
+                path: `group/undefined/sub-sub-group`,
                 virtualPath: 'group/sub-sub-group',
                 attributes: {
                     license: 'MIT',

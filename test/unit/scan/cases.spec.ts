@@ -5,7 +5,6 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { scanDirectory } from '../../../src';
 
@@ -17,12 +16,12 @@ describe('scan cases', () => {
             images: [
                 {
                     virtualPath: 'group/inner',
-                    path: path.join('group', 'inner'),
+                    path: 'group/inner',
                     attributes: { name: 'Group', license: 'MIT' },
                 },
                 {
                     virtualPath: 'group/outer',
-                    path: path.join('group', 'outer'),
+                    path: 'group/outer',
                     attributes: { name: 'Outer', license: 'MIT' },
                 },
             ],
@@ -43,18 +42,18 @@ describe('scan cases', () => {
             images: [
                 {
                     virtualPath: 'nested',
-                    path: path.join('plain', 'deeper', 'nested'),
+                    path: 'plain/deeper/nested',
                 },
                 {
                     virtualPath: 'group/base',
-                    path: path.join('plain', 'group', 'base'),
+                    path: 'plain/group/base',
                     attributes: { name: 'Group', license: 'MIT' },
                 },
             ],
             groups: [
                 {
                     virtualPath: 'group',
-                    path: path.join('plain', 'group'),
+                    path: 'plain/group',
                     attributes: { name: 'Group', license: 'MIT' },
                 },
             ],
@@ -68,12 +67,12 @@ describe('scan cases', () => {
             images: [
                 {
                     virtualPath: 'root-group/child',
-                    path: path.join('root-group', 'child'),
+                    path: 'root-group/child',
                     attributes: { name: 'Root' },
                 },
                 {
                     virtualPath: 'root-group/sub/leaf',
-                    path: path.join('root-group', 'folder', 'sub', 'leaf'),
+                    path: 'root-group/folder/sub/leaf',
                     attributes: { name: 'Sub' },
                 },
             ],
@@ -85,7 +84,7 @@ describe('scan cases', () => {
                 },
                 {
                     virtualPath: 'root-group/sub',
-                    path: path.join('root-group', 'folder', 'sub'),
+                    path: 'root-group/folder/sub',
                     attributes: { name: 'Sub' },
                 },
             ],
@@ -104,7 +103,7 @@ describe('scan cases', () => {
                 },
                 {
                     virtualPath: 'group-with-dockerfile/child',
-                    path: path.join('group-with-dockerfile', 'child'),
+                    path: 'group-with-dockerfile/child',
                     attributes: { name: 'GroupDockerfile' },
                 },
             ],

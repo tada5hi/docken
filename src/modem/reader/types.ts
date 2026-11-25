@@ -6,7 +6,7 @@
  */
 
 import type { Progress } from '../../helpers';
-import type { Quantity } from '../../types';
+import type { ObjectLiteral, Quantity } from '../../types';
 import type { ModemStatusChunk, ModemStreamChunk } from '../utils';
 
 /**
@@ -44,6 +44,23 @@ export type ModemStreamStatusEvent = {
 };
 
 /**
+ * Progress summed over all layers that report byte counts.
+ */
+export type ModemStreamTotalEvent = {
+    kind: 'downloadingTotal' | 'pushingTotal',
+    progress: Progress,
+};
+
+/**
+ * An auxiliary chunk, e.g. the image ID of a build.
+ */
+export type ModemStreamAuxEvent = {
+    kind: 'aux',
+    aux: ObjectLiteral,
+    chunk: ObjectLiteral,
+};
+
+/**
  * The text of a stream chunk.
  */
 export type ModemStreamOutputEvent = {
@@ -56,6 +73,8 @@ export type ModemStreamOutputEvent = {
 };
 
 export type ModemStreamEvent = ModemStreamBuildingEvent |
+    ModemStreamTotalEvent |
+    ModemStreamAuxEvent |
     ModemStreamDownloadingEvent |
     ModemStreamPushingEvent |
     ModemStreamExtractingEvent |

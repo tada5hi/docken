@@ -6,6 +6,7 @@
  */
 
 import { hasOwnProperty, isObject } from 'smob';
+import type { ObjectLiteral } from '../../types';
 
 /**
  * Rejection of a modem stream, carrying every line of its textual output.
@@ -22,7 +23,21 @@ export class ModemStreamError extends Error {
 
     readonly statusCode?: number;
 
-    constructor(message: string, options: { output: string[], cause?: unknown }) {
+    /**
+     * True when the wait was cancelled by a signal or timeout.
+     */
+    readonly aborted?: boolean;
+
+    /**
+     * Raw errorDetail of the daemon, when the failure came from its response.
+     */
+    readonly detail?: { code?: number, message?: string } & ObjectLiteral;
+
+    constructor(message: string, options: {
+        output: string[],
+        cause?: unknown,
+        aborted?: boolean,
+    }) {
         super(message, { cause: options.cause });
 
         this.name = 'ModemStreamError';
@@ -32,6 +47,10 @@ export class ModemStreamError extends Error {
             writable: false,
             configurable: true,
         });
+
+        if (options.aborted) {
+            this.aborted = true;
+        }
 
         const { cause } = options;
 
@@ -49,6 +68,10 @@ export class ModemStreamError extends Error {
 
         if (hasOwnProperty(cause, 'syscall') && typeof cause.syscall === 'string') {
             this.syscall = cause.syscall;
+        }
+
+        if (hasOwnProperty(cause, 'detail') && isObject(cause.detail)) {
+            this.detail = cause.detail;
         }
 
         if (hasOwnProperty(cause, 'statusCode') && typeof cause.statusCode === 'number') {

@@ -17,7 +17,8 @@ describe('modem/reader', () => {
             progress: '',
             id: 'a',
         };
-        const events = new ModemStreamReader().push(chunk);
+        const events = new ModemStreamReader().push(chunk)
+            .filter((event) => event.kind !== 'downloadingTotal');
 
         expect(events).toEqual([{
             kind: 'downloading',
@@ -43,11 +44,14 @@ describe('modem/reader', () => {
         };
         const waiting = { status: 'Waiting', id: 'a' };
 
-        expect(reader.push(pushing)).toEqual([{
-            kind: 'pushing',
-            progress: buildProgress(3, 4),
-            chunk: pushing,
-        }]);
+        expect(reader.push(pushing)).toEqual([
+            { kind: 'pushingTotal', progress: buildProgress(3, 4) },
+            {
+                kind: 'pushing',
+                progress: buildProgress(3, 4),
+                chunk: pushing,
+            },
+        ]);
         expect(reader.push(extracting)).toEqual([{
             kind: 'extracting',
             quantity: { value: 7, unit: 's' },
@@ -107,7 +111,7 @@ describe('modem/reader', () => {
         }]);
     });
 
-    it('orders building, status, output for a chunk with both fields', () => {
+    it('orders building, total, status, output for a chunk with both fields', () => {
         const chunk = {
             status: 'Downloading',
             progressDetail: { current: 3, total: 4 },
@@ -115,11 +119,11 @@ describe('modem/reader', () => {
             stream: 'Step 1/1 : FROM x\n',
         };
 
-        expect(new ModemStreamReader().push(chunk).map((event) => event.kind)).toEqual(['building', 'downloading', 'output']);
+        expect(new ModemStreamReader().push(chunk).map((event) => event.kind)).toEqual(['building', 'downloadingTotal', 'downloading', 'output']);
     });
 
     it('gives no event for an unknown chunk', () => {
-        expect(new ModemStreamReader().push({ aux: {} })).toEqual([]);
+        expect(new ModemStreamReader().push({ other: {} })).toEqual([]);
     });
 
     it('collects the output lines', () => {
@@ -128,5 +132,64 @@ describe('modem/reader', () => {
         reader.push({ stream: 'a\nb' });
 
         expect(reader.lines()).toEqual(['a', 'b']);
+    });
+
+    describe('total progress', () => {
+        const layer = (status: string, id: string, current?: number, total?: number) => ({
+            status,
+            id,
+            ...(typeof total === 'number' ? { progressDetail: { current, total } } : {}),
+        });
+        const totals = (events: { kind: string }[]) => events.filter((e) => e.kind.endsWith('Total'));
+
+        it('sums download progress over layers', () => {
+            const reader = new ModemStreamReader();
+            reader.push(layer('Downloading', 'a', 10, 100));
+
+            expect(reader.push(layer('Downloading', 'b', 30, 100))).toContainEqual({
+                kind: 'downloadingTotal',
+                progress: buildProgress(40, 200),
+            });
+        });
+
+        it('completes a layer on Download complete', () => {
+            const reader = new ModemStreamReader();
+            reader.push(layer('Downloading', 'a', 10, 100));
+            reader.push(layer('Downloading', 'b', 30, 100));
+
+            expect(reader.push({ status: 'Download complete', id: 'a' })).toEqual([
+                { kind: 'downloadingTotal', progress: buildProgress(130, 200) },
+                { kind: 'status', chunk: { status: 'Download complete', id: 'a' } },
+            ]);
+        });
+
+        it('sums push progress and completes on Pushed / Layer already exists', () => {
+            const reader = new ModemStreamReader();
+            reader.push(layer('Pushing', 'a', 10, 100));
+            reader.push(layer('Pushing', 'b', 30, 100));
+
+            expect(totals(reader.push({ status: 'Pushed', id: 'a' }))).toEqual([
+                { kind: 'pushingTotal', progress: buildProgress(130, 200) },
+            ]);
+            expect(totals(reader.push({ status: 'Layer already exists', id: 'b' }))).toEqual([
+                { kind: 'pushingTotal', progress: buildProgress(200, 200) },
+            ]);
+        });
+
+        it('ignores layers without byte counts', () => {
+            const reader = new ModemStreamReader();
+
+            expect(totals(reader.push({ status: 'Downloading', id: 'c', progressDetail: {} }))).toEqual([]);
+            expect(totals(reader.push(layer('Downloading', 'c', 0, 0)))).toEqual([]);
+            expect(totals(reader.push({ status: 'Layer already exists', id: 'x' }))).toEqual([]);
+        });
+    });
+
+    it('emits an aux event', () => {
+        const chunk = { aux: { ID: 'sha256:abc' } };
+
+        expect(new ModemStreamReader().push(chunk)).toEqual([
+            { kind: 'aux', aux: { ID: 'sha256:abc' }, chunk },
+        ]);
     });
 });

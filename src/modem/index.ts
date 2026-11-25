@@ -6,4 +6,5 @@
  */
 
 export * from './helpers';
+export type * from './reader/types';
 export * from './types';

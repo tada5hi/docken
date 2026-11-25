@@ -6,5 +6,6 @@
  */
 
 export * from './fold';
+export * from './fold-tree';
 export * from './types';
 export * from './walk';

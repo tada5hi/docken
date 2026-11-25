@@ -262,4 +262,62 @@ describe('waitForModemStream dispatch', () => {
         expect(response).toEqual([{ ok: 1 }]);
         expect(onFinished).toHaveBeenCalledTimes(1);
     });
+
+    it('reports total progress even when onDownloading handled the chunk', async () => {
+        const onDownloading = vi.fn();
+        const onDownloadingTotal = vi.fn();
+
+        await run([downloading], { onDownloading, onDownloadingTotal });
+
+        expect(onDownloading).toHaveBeenCalledTimes(1);
+        expect(onDownloadingTotal.mock.calls).toEqual([[buildProgress(5, 10)]]);
+    });
+
+    it('passes aux chunks on to onChunk', async () => {
+        const onChunk = vi.fn();
+        const onStatusChunk = vi.fn();
+        const aux = { aux: { ID: 'sha256:abc' } };
+
+        await run([aux], { onChunk, onStatusChunk });
+
+        expect(onChunk.mock.calls).toEqual([[aux]]);
+        expect(onStatusChunk).not.toHaveBeenCalled();
+    });
+
+    it('calls onEvent for every event before its specific callback', async () => {
+        const calls: string[] = [];
+
+        await run([downloading], {
+            onEvent: (event) => { calls.push(`event:${event.kind}`); },
+            onDownloadingTotal: () => { calls.push('onDownloadingTotal'); },
+            onDownloading: () => { calls.push('onDownloading'); },
+        });
+
+        expect(calls).toEqual(['event:downloadingTotal', 'onDownloadingTotal', 'event:downloading', 'onDownloading']);
+    });
+
+    it('calls onEvent for events after the handling one', async () => {
+        const kinds: string[] = [];
+        const onStreamChunk = vi.fn();
+        const onBuilding = vi.fn();
+
+        await run([{ stream: 'Step 1/2 : FROM x\n' }], {
+            onStreamChunk,
+            onBuilding,
+            onEvent: (event) => { kinds.push(event.kind); },
+        });
+
+        expect(kinds).toEqual(['building', 'output']);
+        expect(onBuilding).toHaveBeenCalledTimes(1);
+
+        const handled: string[] = [];
+        await run([{ stream: 'x\n', status: 'Pulling', id: 'a' }], {
+            onStatusChunk: () => {},
+            onEvent: (event) => { handled.push(event.kind); },
+            onStreamChunk,
+        });
+
+        expect(handled).toEqual(['status', 'output']);
+        expect(onStreamChunk).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'Pulling' }));
+    });
 });

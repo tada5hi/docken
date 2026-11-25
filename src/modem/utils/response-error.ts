@@ -6,8 +6,9 @@
  */
 
 import { hasOwnProperty, isObject } from 'smob';
+import type { ObjectLiteral } from '../../types';
 
-export function extractErrorFromModemResponse(res: unknown) : Error | null {
+export function extractErrorFromModemResponse(res: unknown) : (Error & { detail: ObjectLiteral }) | null {
     if (!res || !Array.isArray(res) || res.length === 0) {
         return null;
     }
@@ -27,7 +28,7 @@ export function extractErrorFromModemResponse(res: unknown) : Error | null {
             message = 'An unknown client modem error occurred.';
         }
 
-        return new Error(message);
+        return Object.assign(new Error(message), { detail: raw.errorDetail as ObjectLiteral });
     }
 
     return null;

@@ -198,4 +198,164 @@ describe('waitForModemStream', () => {
 
         expect(seen).toEqual([buildProgress(1, 4), buildProgress(2, 4)]);
     });
+    describe('cancellation', () => {
+        type Callbacks = {
+            onFinished?: (error: Error | null, output: unknown[]) => void,
+            onProgress?: (chunk: Record<string, any>) => void,
+            calls: number,
+        };
+
+        function createDeferredModem(): { modem: FakeModem, callbacks: Callbacks } {
+            const callbacks: Callbacks = { calls: 0 };
+
+            return {
+                callbacks,
+                modem: {
+                    followProgress(_stream, onFinished, onProgress) {
+                        callbacks.calls++;
+                        callbacks.onFinished = onFinished as Callbacks['onFinished'];
+                        callbacks.onProgress = onProgress as Callbacks['onProgress'];
+                    },
+                },
+            };
+        }
+
+        function createStream() {
+            return new Readable({ read() {} });
+        }
+
+        it('should reject immediately for an already aborted signal', async () => {
+            const { modem, callbacks } = createDeferredModem();
+            const input = createStream();
+            const error = await catchError(waitForModemStream(modem, input, { signal: AbortSignal.abort() }));
+
+            expect(callbacks.calls).toBe(0);
+            expect(input.destroyed).toBe(true);
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.aborted).toBe(true);
+            expect(error.message).toBe('The stream was aborted.');
+        });
+
+        it('should destroy the stream and reject on abort', async () => {
+            const { modem, callbacks } = createDeferredModem();
+            const input = createStream();
+            const controller = new AbortController();
+            const promise = waitForModemStream(modem, input, { signal: controller.signal });
+
+            callbacks.onProgress?.({ stream: 'Step 1/1 : FROM x\n' });
+            controller.abort();
+
+            const error = await catchError(promise);
+
+            expect(input.destroyed).toBe(true);
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.aborted).toBe(true);
+            expect(error.output).toContain('Step 1/1 : FROM x');
+        });
+
+        it('should ignore modem callbacks after abort', async () => {
+            const { modem, callbacks } = createDeferredModem();
+            const controller = new AbortController();
+            let downloading = 0;
+            let finished = 0;
+            let events = 0;
+            const promise = waitForModemStream(modem, createStream(), {
+                signal: controller.signal,
+                onDownloading: () => { downloading++; },
+                onEvent: () => { events++; },
+                onFinished: () => { finished++; },
+            });
+
+            controller.abort();
+            callbacks.onProgress?.({
+                id: 'a', status: 'Downloading', progressDetail: { current: 1, total: 2 },
+            });
+            callbacks.onFinished?.(null, []);
+
+            const error = await catchError(promise);
+
+            expect(isModemStreamError(error)).toBe(true);
+            expect(downloading).toBe(0);
+            expect(events).toBe(0);
+            expect(finished).toBe(0);
+        });
+
+        it('should reject with a timeout error', async () => {
+            const { modem } = createDeferredModem();
+            const error = await catchError(waitForModemStream(modem, createStream(), { timeout: 20 }));
+
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.message).toBe('The stream timed out.');
+            expect((error.cause as Error).name).toBe('TimeoutError');
+        });
+
+        it('should round a fractional timeout up', async () => {
+            const { modem } = createDeferredModem();
+            const error = await catchError(waitForModemStream(modem, createStream(), { timeout: 1.5 }));
+
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.message).toBe('The stream timed out.');
+        });
+
+        it('should clamp an oversized timeout', async () => {
+            const modem = createFakeModem([], null, []);
+
+            await expect(waitForModemStream(modem, createStream(), { timeout: 2 ** 40 })).resolves.toEqual([]);
+        });
+
+        it.each([0, -1])('should ignore the non-positive timeout %d', async (timeout) => {
+            const modem = createFakeModem([], null, []);
+
+            await expect(waitForModemStream(modem, createStream(), { timeout })).resolves.toEqual([]);
+        });
+
+        it('should do nothing when aborted after resolving', async () => {
+            const modem = createFakeModem([], null, []);
+            const input = createStream();
+            const controller = new AbortController();
+
+            await waitForModemStream(modem, input, { signal: controller.signal });
+            controller.abort();
+
+            expect(input.destroyed).toBe(false);
+        });
+    });
+
+    describe('daemon error detail', () => {
+        it('should expose the daemon errorDetail', async () => {
+            const modem = createFakeModem([], null, [{ errorDetail: { code: 1, message: 'boom' }, error: 'boom' }]);
+            const error = await catchError(waitForModemStream(modem, stream));
+
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.detail).toEqual({ code: 1, message: 'boom' });
+        });
+
+        it('should not set detail for a socket error', async () => {
+            const failure = Object.assign(new Error('reset'), { code: 'ECONNRESET' });
+            const modem = createFakeModem([], failure, []);
+            const error = await catchError(waitForModemStream(modem, stream));
+
+            expect(isModemStreamError(error)).toBe(true);
+            if (!isModemStreamError(error)) {
+                throw new Error('unreachable');
+            }
+            expect(error.code).toBe('ECONNRESET');
+            expect(error.detail).toBeUndefined();
+        });
+    });
 });
