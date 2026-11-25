@@ -40,4 +40,30 @@ describe('buildImage', () => {
         expect(result).toEqual({ imageId: undefined });
         expect(calls.buildImage.mock.calls[0][0]).toBe(tar);
     });
+
+    it('destroys the packed context when the build fails', async () => {
+        const { client, calls } = createFakeClient([]);
+
+        calls.buildImage.mockRejectedValueOnce(new Error('boom'));
+
+        await expect(buildImage(
+            client,
+            { context: path.join(__dirname, '../../data/build-context') },
+        )).rejects.toThrow('boom');
+
+        const [tar] = calls.buildImage.mock.calls[0];
+
+        // tar-stream's pack flags destruction as _destroyed
+        expect(tar.destroyed || tar._destroyed).toBe(true);
+    });
+
+    it('does not destroy a caller supplied stream on failure', async () => {
+        const { client, calls } = createFakeClient([]);
+        const tar = new Readable({ read() { this.push(null); } });
+
+        calls.buildImage.mockRejectedValueOnce(new Error('boom'));
+
+        await expect(buildImage(client, { context: tar })).rejects.toThrow('boom');
+        expect(tar.destroyed).toBe(false);
+    });
 });

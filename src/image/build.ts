@@ -22,26 +22,34 @@ export async function buildImage(
 ) : Promise<{ imageId?: string }> {
     const { context, ...buildOptions } = input;
     let imageId : string | undefined;
+    let packed : NodeJS.ReadableStream | undefined;
 
-    await runImageOperation(
-        client,
-        async (abortSignal) => {
-            const tar = typeof context === 'string' ?
-                await packBuildContext(context, buildOptions.dockerfile) :
-                context;
+    try {
+        await runImageOperation(
+            client,
+            async (abortSignal) => {
+                if (typeof context === 'string') {
+                    packed = await packBuildContext(context, buildOptions.dockerfile);
+                }
 
-            return client.buildImage(tar as any, {
-                ...buildOptions,
-                abortSignal,
-            } as any) as unknown as Promise<NodeJS.ReadableStream>;
-        },
-        options,
-        (event) => {
-            if (event.kind === 'aux' && typeof event.aux.ID === 'string') {
-                imageId = event.aux.ID;
-            }
-        },
-    );
+                return client.buildImage((packed ?? context) as any, {
+                    ...buildOptions,
+                    abortSignal,
+                } as any) as unknown as Promise<NodeJS.ReadableStream>;
+            },
+            options,
+            (event) => {
+                if (event.kind === 'aux' && typeof event.aux.ID === 'string') {
+                    imageId = event.aux.ID;
+                }
+            },
+        );
+    } catch (e) {
+        // a context packed here is owned by this function
+        (packed as { destroy?: () => void } | undefined)?.destroy?.();
+
+        throw e;
+    }
 
     return { imageId };
 }
